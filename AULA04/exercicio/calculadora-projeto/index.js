@@ -13,7 +13,7 @@ console.log("Divisão: ", divisao(10, 2));
 
 function calcularIdade(anoNascimento) {
     const dataAtual = moment(); 
-    const dataNascimento = moment(`${anoNascimento}-01-01`, "YYYY-MM-DD"); 
+    const dataNascimento = moment(`${anoNascimento}`, "YYYY-MM-DD"); 
     
     // Calculando a idade
     const idade = dataAtual.year() - dataNascimento.year();    
