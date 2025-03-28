@@ -1,19 +1,61 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import PrimeiroComponente from "./componentes/PrimeiroComponente";
-import JavaScriptComponente from "./componentes/JavaScriptComponente";
-import Perfil from "./componentes/Perfil";
-
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import Pessoa from "./componentes/Pessoa";
 export default function App() {
+
+
+  const listaJogadores = [
+    {
+      nome: "Neymar",
+      idade: 33,
+      imagem: 'https://i.pinimg.com/236x/65/92/d2/6592d22f05d29398784337cd02a37e26.jpg'
+    },
+    {
+      nome: "Cristiano Ronaldo",
+      idade: 40,
+      imagem: 'https://i.pinimg.com/474x/e2/07/cc/e207cc58c891798d5ff308b38ebc59cc.jpg'
+    },
+    {
+      nome: "Messi",
+      idade: 40,
+      imagem: 'https://i.pinimg.com/474x/ab/3b/73/ab3b732b4401d1820418db53ef468cd0.jpg'
+    },
+    {
+      nome: "Messi",
+      idade: 40,
+      imagem: 'https://i.pinimg.com/474x/ab/3b/73/ab3b732b4401d1820418db53ef468cd0.jpg'
+    },
+    {
+      nome: "Messi",
+      idade: 40,
+      imagem: 'https://i.pinimg.com/474x/ab/3b/73/ab3b732b4401d1820418db53ef468cd0.jpg'
+    }
+  ]
+
+
   return (
+    <ScrollView>
+
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      <PrimeiroComponente />
-      <JavaScriptComponente/>
-      <Perfil nome="Vitin"
-      idade={21}/>
+      {
+        listaJogadores.map(
+          (jogador) => {
+            return (
+              <Pessoa 
+                dados={jogador}
+              />
+            )
+          }
+        )
+      }
+
+
     </View>
+
+
+  </ScrollView>
   );
 }
 
