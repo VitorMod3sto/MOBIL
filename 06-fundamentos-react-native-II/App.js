@@ -1,6 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import Pessoa from "./componentes/Pessoa";
+import Atleta from "./componentes/Atleta";
+
 export default function App() {
 
 
@@ -39,16 +40,17 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      {
-        listaJogadores.map(
-          (jogador) => {
-            return (
-              <Pessoa 
-                dados={jogador}
-              />
-            )
-          }
-        )
+      { listaJogadores.map(
+        jogador => {
+          return(
+     <Atleta
+     nome={jogador.nome}
+     idade={jogador.idade}
+     imagem={jogador.imagem}
+     />
+          )
+        }
+      )
       }
 
 
