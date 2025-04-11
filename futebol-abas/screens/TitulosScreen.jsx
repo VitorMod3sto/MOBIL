@@ -15,11 +15,12 @@ export default function TitulosScreen() {
       <FlatList
         data={titulos}
         keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <Card style={styles.card}>
             <Card.Content>
-              <Text variant="titleMedium">{item.nome}</Text>
-              <Text>Ano(s): {item.anos.join(', ')}</Text>
+              <Text style={styles.titulo}>{item.nome}</Text>
+              <Text style={styles.anos}>Ano(s): {item.anos.join(', ')}</Text>
             </Card.Content>
           </Card>
         )}
@@ -31,10 +32,28 @@ export default function TitulosScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 10,
+    backgroundColor: '#000',
+    padding: 16,
+  },
+  list: {
+    paddingBottom: 20,
   },
   card: {
-    marginBottom: 10,
+    backgroundColor: '#1C1C1C',
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'white', 
+    elevation: 4,
+  },
+  titulo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 6,
+  },
+  anos: {
+    fontSize: 14,
+    color: '#FFD700', // dourado
   },
 });

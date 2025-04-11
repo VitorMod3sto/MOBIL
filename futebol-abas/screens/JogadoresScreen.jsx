@@ -36,10 +36,16 @@ export default function JogadoresScreen() {
       <FlatList
         data={jogadores}
         keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <Card style={styles.card}>
-            <Card.Title title={item.nome} subtitle={`Camisa ${item.numero}`} />
-            <Card.Cover source={{ uri: item.imagem }} />
+            <View style={styles.cardContent}>
+              <Image source={{ uri: item.imagem }} style={styles.imagem} />
+              <View style={styles.textContainer}>
+                <Text style={styles.nome}>{item.nome}</Text>
+                <Text style={styles.numero}>Camisa {item.numero}</Text>
+              </View>
+            </View>
           </Card>
         )}
       />
@@ -50,10 +56,42 @@ export default function JogadoresScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 10,
+    backgroundColor: '#000',
+    padding: 16,
+  },
+  list: {
+    paddingBottom: 20,
   },
   card: {
-    marginBottom: 10,
+    backgroundColor: '#1C1C1C',
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    overflow: 'hidden',
+    elevation: 5,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+  },
+  imagem: {
+    width: 60,
+    height: 60,
+    borderRadius: 30, 
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  nome: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  numero: {
+    fontSize: 14,
+    color: '#FFD700',
   },
 });
