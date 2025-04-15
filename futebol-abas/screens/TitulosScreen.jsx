@@ -14,7 +14,6 @@ export default function TitulosScreen() {
     <View style={styles.container}>
       <FlatList
         data={titulos}
-        keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <Card style={styles.card}>

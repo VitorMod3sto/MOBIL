@@ -35,7 +35,6 @@ export default function JogadoresScreen() {
     <View style={styles.container}>
       <FlatList
         data={jogadores}
-        keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <Card style={styles.card}>

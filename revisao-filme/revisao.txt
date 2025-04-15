@@ -1,0 +1,24 @@
+1 -  Apos criar projeto e importar as bibliotecas, deve se criar as Screens.jsx e aplica no return do APP.js desta forma, para exibir as paginas:
+
+<NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="Filme" component={FilmeScreen} />
+        <Tab.Screen name="Elenco" component={ElencoScreen} />
+        <Tab.Screen name="Premio" component={PremiosScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+
+2 - Criar as Screens dentro da pasta screen e colocar os objetos e arrays (conjuntos de dados) na screen correspondente
+- Exemplo: 
+
+const filme = {
+  nome: "O Senhor dos Anéis: O Retorno do Rei",
+  cartaz: "https://i.ytimg.com/vi/OQgySPQ5M3Y/maxresdefault.jpg"
+};
+
+Dentro da FilmeScreen.jsx
+
+3 - Visualizar na App.js e estilizar
+
+4 - OBS: <Image /> precisa estar com estilos, se nao, a imagem nao aparece
+5 - 

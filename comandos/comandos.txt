@@ -1,0 +1,17 @@
+# Criar o novo projeto
+npx create-expo-app@latest 08-navegacao-abas --template blank
+
+# instalando biblioteca de componentes paper
+npm install react-native-vector-icons 
+npm i react-native-safe-area-context 
+npm i react-native-paper
+
+# Instale a biblioteca do React Navigation
+npm install @react-navigation/native
+
+# Instale as dependências necessárias
+npx expo install react-native-screens
+npm i react-native-safe-area-context
+
+# Instale o pacote de navegação por abas
+npm install @react-navigation/bottom-tabs
