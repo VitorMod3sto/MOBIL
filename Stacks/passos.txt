@@ -1,0 +1,3 @@
+cria as telas
+cria em routes a stack de navegação, onde fica a navegação
+importa o stack routes no app.js

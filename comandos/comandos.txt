@@ -1,5 +1,5 @@
 # Criar o novo projeto
-npx create-expo-app@latest 08-navegacao-abas --template blank
+npx create-expo-app@latest revisao-filme --template blank
 
 # instalando biblioteca de componentes paper
 npm install react-native-vector-icons 
