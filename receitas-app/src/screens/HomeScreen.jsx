@@ -3,7 +3,7 @@ import React from "react";
 import { FlatList } from "react-native-gesture-handler";
 import { Button, Card } from "react-native-paper";
 
-export default function HomeScreen({navigation, route}) {
+export default function HomeScreen({ navigation }) {
   const receitas = [
     {
       id: 1,
@@ -80,25 +80,24 @@ export default function HomeScreen({navigation, route}) {
   ];
 
   return (
-    <View>
-        <FlatList
+    <View style={styles.container}>
+      <FlatList
         data={receitas}
-        // lista importada aqui
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-            // defino que cada carro renderizado e que irá exibir a lista toda, item por item
-            // Crio um Card de exibição e na função onPress, defino que irá para página ItemScreen
-            // E irá repassar o item todo (objeto)
-          <Card style={{ margin: 10 }}>
-            <Card.Cover source={{ uri: item.imagem }} />
+          <Card style={styles.card}>
+            <Card.Cover source={{ uri: item.imagem }} style={styles.image} />
             <Card.Content>
-              <Text>Receita: {item.nome}</Text>
+              <Text style={styles.nomeReceita}>{item.nome}</Text>
             </Card.Content>
             <Card.Actions>
               <Button
-              mode="contained"
-              icon='information'
-              onPress={() => navigation.navigate('ReceitaScreen', {item})}
-              >Confira essa receita</Button>
+                mode="contained"
+                icon="information"
+                onPress={() => navigation.navigate("ReceitaScreen", { item })}
+              >
+                Confira essa receita
+              </Button>
             </Card.Actions>
           </Card>
         )}
@@ -107,4 +106,23 @@ export default function HomeScreen({navigation, route}) {
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    padding: 12,
+    backgroundColor: "#f5f5f5",
+    flex: 1,
+  },
+  card: {
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  image: {
+    height: 180,
+  },
+  nomeReceita: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 12,
+  },
+});
