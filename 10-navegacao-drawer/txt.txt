@@ -1,0 +1,9 @@
+cria as screens
+cria Drawer Routes e importa no APP.js
+importa as telas no Drawer junto do PaperProvider
+<Drawer.Navigator>
+        <Drawer.Screen name='HomeScreen' component={HomeScreen}/>
+        <Drawer.Screen name='ProfileScreen' component={ProfileScreen}/>
+        <Drawer.Screen name='ConfigScreen' component={ConfigScreen}/>
+
+    </Drawer.Navigator>
