@@ -1,9 +1,8 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Image } from "react-native";
 import React, { useState } from "react";
 import { Card, Text, Button } from "react-native-paper";
 
 export default function JogoDoBicho() {
-  // Lista de animais do jogo do bicho
   const animais = [
     {
       numero: 1,
@@ -67,7 +66,7 @@ export default function JogoDoBicho() {
     },
   ];
 
-  const [bichoAleatorio, setBichoAleatorio] = useState([]);
+  const [bichoAleatorio, setBichoAleatorio] = useState(null);
 
   function gerarAnimal() {
     const index = Math.floor(Math.random() * animais.length);
@@ -76,19 +75,94 @@ export default function JogoDoBicho() {
   }
 
   return (
-    <View>
-      <Card>
-        <Card.Content />
-        <Text variant="displaySmall">Gerador de Bicho</Text>
-        <Text variant="displaySmall">Nome: {bichoAleatorio.nome}</Text>
-        <Card.Cover source={{ uri: bichoAleatorio.imagem }} />
+    <View style={styles.container}>
+      <Card style={styles.card}>
+        <Card.Content>
+          <Text variant="headlineMedium" style={styles.title}>
+            🎲 Jogo do Bicho
+          </Text>
+          <Text variant="titleMedium" style={styles.subtitle}>
+            Toque no botão para gerar um animal aleatório!
+          </Text>
 
-        <Card.Actions>
-          <Button onPress={gerarAnimal}>Gerar</Button>
+          {bichoAleatorio && (
+            <View style={styles.resultContainer}>
+              <Text style={styles.animalNome}>🐾 {bichoAleatorio.nome}</Text>
+              <Image
+                source={{ uri: bichoAleatorio.imagem }}
+                style={styles.imagem}
+                resizeMode="cover"
+              />
+            </View>
+          )}
+        </Card.Content>
+
+        <Card.Actions style={styles.actions}>
+          <Button
+            mode="contained"
+            buttonColor="#6200ee"
+            textColor="#fff"
+            onPress={gerarAnimal}
+            style={styles.botao}
+          >
+            Gerar Animal
+          </Button>
         </Card.Actions>
       </Card>
     </View>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f0f2f5",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  card: {
+    width: "100%",
+    maxWidth: 400,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: "#ffffff",
+    elevation: 5,
+  },
+  title: {
+    textAlign: "center",
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    textAlign: "center",
+    marginBottom: 16,
+    color: "#555",
+  },
+  resultContainer: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+  animalNome: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333",
+  },
+  imagem: {
+    width: 200,
+    height: 200,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#6200ee",
+  },
+  actions: {
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  botao: {
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+});
