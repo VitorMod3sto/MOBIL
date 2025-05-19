@@ -3,15 +3,17 @@ import { StyleSheet, View } from "react-native";
 import React from "react";
 import NomeNumero from "./components/NomeNumero";
 import Controle from "./components/Controle";
+import Pessoa from "./components/Pessoa";
+import GeradorNumeroAleatorio from "./components/GeradorNumeroAleatorio";
 
 export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      <NomeNumero />
+      <Pessoa />
+      <GeradorNumeroAleatorio />
 
-      <Controle />
     </View>
   );
 }
