@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import HomeScreen from '../screens/HomeScreen';
+import HomeStackRoutes from './HomeStackRoutes'; // <- 1. IMPORTE O NOVO STACK
 import FilmesScreen from '../screens/FilmesScreen';
 import SeriesScreen from '../screens/SeriesScreen';
 import ConfigScreen from '../screens/ConfigScreen';
@@ -13,55 +13,26 @@ export default function TabRoutes() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#1F262E', // Cor de fundo da barra
-          borderTopColor: '#1F262E',  // Cor da borda
+          backgroundColor: '#1F262E',
+          borderTopColor: '#1F262E',
         },
-        tabBarActiveTintColor: '#fff', // Cor do ícone e texto ativos (branco)
-        tabBarInactiveTintColor: '#8A95A6', // Cor do ícone e texto inativos (cinza)
+        tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#8A95A6',
       }}
     >
-
-      
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStackRoutes} // <- 2. USE O STACK AQUI
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" color={color} size={size} />
           ),
         }}
       />
-
-      <Tab.Screen
-        name="Filmes"
-        component={FilmesScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="film-outline" color={color} size={size} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Séries"
-        component={SeriesScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="tv-outline" color={color} size={size} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Configurações"
-        component={ConfigScreen}
-        options={{
-          tabBarLabel: 'Ajustes', // Nome menor para a aba
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" color={color} size={size} />
-          ),
-        }}
-      />
+      {/* As outras abas continuam como estão */}
+      <Tab.Screen name="Filmes" component={FilmesScreen} options={{ tabBarIcon: ({ color, size }) => (<Ionicons name="film-outline" color={color} size={size} />) }} />
+      <Tab.Screen name="Séries" component={SeriesScreen} options={{ tabBarIcon: ({ color, size }) => (<Ionicons name="tv-outline" color={color} size={size} />) }} />
+      <Tab.Screen name="Configurações" component={ConfigScreen} options={{ tabBarLabel: 'Ajustes', tabBarIcon: ({ color, size }) => (<Ionicons name="settings-outline" color={color} size={size} />) }} />
     </Tab.Navigator>
   );
 }
