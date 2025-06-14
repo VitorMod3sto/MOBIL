@@ -65,3 +65,37 @@ export const getMovieRecommendations = async (movieId) => {
 };
 
 
+// NOVA FUNÇÃO
+export const getSeriesDetails = async (seriesId) => {
+  try {
+    const response = await api.get(`/tv/${seriesId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar detalhes da série:', error);
+    return null;
+  }
+};
+
+// NOVA FUNÇÃO
+export const getSeriesRecommendations = async (seriesId) => {
+  try {
+    const response = await api.get(`/tv/${seriesId}/recommendations`);
+    return response.data.results;
+  } catch (error) {
+    console.error('Erro ao buscar recomendações de séries:', error);
+    return [];
+  }
+};
+
+
+// NOVA FUNÇÃO
+export const getSeasonDetails = async (seriesId, seasonNumber) => {
+  try {
+    // Busca os detalhes de uma temporada específica, que contém a lista de episódios
+    const response = await api.get(`/tv/${seriesId}/season/${seasonNumber}`);
+    return response.data.episodes; // Retornamos o array de episódios
+  } catch (error) {
+    console.error(`Erro ao buscar detalhes da temporada ${seasonNumber}:`, error);
+    return [];
+  }
+};

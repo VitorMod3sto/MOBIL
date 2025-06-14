@@ -19,7 +19,7 @@ const ItemDoCarrossel = ({ item, navigation }) => {
     <TouchableOpacity
       activeOpacity={0.9}
       style={estilos.containerDoItem}
-      onPress={() => navigation.navigate("FilmeDetalhe", { item: item })}
+      onPress={() => navigation.navigate('FilmeDetalhe', { itemId: item.id })}
     >
       <ImageBackground source={{ uri: urlDaImagem }} style={estilos.banner}>
         <View style={estilos.sobreposicao}>
@@ -78,9 +78,8 @@ export default function CarrosselPersonalizado({ dados, navigation }) {
         ref={referenciaFlatList}
         data={dados}
         // Repassa a prop de navegação para cada item
-        renderItem={({ item }) => (
-          <ItemDoCarrossel item={item} navigation={navigation} />
-        )}
+        renderItem={({ item }) => <ItemDoCarrossel item={item} navigation={navigation} />}
+        
         keyExtractor={(item) => item.id.toString()}
         horizontal
         pagingEnabled

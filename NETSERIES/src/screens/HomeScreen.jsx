@@ -46,14 +46,13 @@ export default function TelaDeInicio({ navigation }) {
   // MUDANÇA AQUI: Função de clique atualizada para navegar
   const aoClicarNoCard = (item, tipoDeMidia = null) => {
     const tipo = tipoDeMidia || item.media_type;
-    const nome = item.title || item.name;
 
-    if (tipo === "movie") {
-      // Passe o objeto completo
-      navigation.navigate("FilmeDetalhe", { item: item });
-    } else if (tipo === "tv") {
-      // Passe o objeto completo
-      navigation.navigate("SerieDetalhe", { item: item });
+    if (tipo === 'movie') {
+      // MUDANÇA: Passamos apenas o ID do item
+      navigation.navigate('FilmeDetalhe', { itemId: item.id });
+    } else if (tipo === 'tv') {
+      // MUDANÇA: Passamos apenas o ID da série
+      navigation.navigate('SerieDetalhe', { itemId: item.id });
     }
   };
 
