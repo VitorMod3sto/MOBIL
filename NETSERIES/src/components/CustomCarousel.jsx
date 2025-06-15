@@ -11,26 +11,20 @@ import { Text, Chip } from "react-native-paper";
 
 const { width: larguraDaTela } = Dimensions.get("window");
 
-// MUDANÇA AQUI: O item do carrossel agora recebe 'navigation'
-const ItemDoCarrossel = ({ item, navigation }) => {
+// Componente para renderizar cada slide do carrossel
+const ItemDoCarrossel = ({ item, aoClicarNoItem }) => {
   const urlDaImagem = `https://image.tmdb.org/t/p/w780${item.backdrop_path}`;
   return (
-    // O clique navega para a tela de detalhes do filme
     <TouchableOpacity
       activeOpacity={0.9}
       style={estilos.containerDoItem}
-      onPress={() => navigation.navigate('FilmeDetalhe', { itemId: item.id })}
+      // Chama a função recebida da tela principal, passando o item atual
+      onPress={() => aoClicarNoItem(item)}
     >
       <ImageBackground source={{ uri: urlDaImagem }} style={estilos.banner}>
         <View style={estilos.sobreposicao}>
-          <Text style={estilos.titulo} variant="headlineLarge">
-            {item.title}
-          </Text>
-          <Chip
-            icon="star"
-            style={estilos.etiqueta}
-            textStyle={estilos.textoDaEtiqueta}
-          >
+          <Text style={estilos.titulo} variant="headlineLarge">{item.title || item.name}</Text>
+          <Chip icon="star" style={estilos.etiqueta} textStyle={estilos.textoDaEtiqueta}>
             {item.vote_average.toFixed(1)}
           </Chip>
         </View>
@@ -39,15 +33,15 @@ const ItemDoCarrossel = ({ item, navigation }) => {
   );
 };
 
-// MUDANÇA AQUI: O componente recebe e repassa a 'navigation'
-export default function CarrosselPersonalizado({ dados, navigation }) {
-  // ... (a lógica interna do carrossel continua a mesma)
+// Componente principal do Carrossel
+export default function CarrosselPersonalizado({ dados, aoClicarNoItem }) {
   const [indiceAtivo, setIndiceAtivo] = useState(0);
   const referenciaFlatList = useRef(null);
 
+  // Efeito para o auto-play
   useEffect(() => {
-    // ... (lógica do auto-play)
     if (!dados || dados.length === 0) return;
+
     const intervalo = setInterval(() => {
       const proximoIndice = (indiceAtivo + 1) % dados.length;
       referenciaFlatList.current?.scrollToIndex({
@@ -55,12 +49,13 @@ export default function CarrosselPersonalizado({ dados, navigation }) {
         animated: true,
       });
       setIndiceAtivo(proximoIndice);
-    }, 5000);
+    }, 5000); // Muda a cada 5 segundos
+
     return () => clearInterval(intervalo);
   }, [indiceAtivo, dados]);
 
+  // Função para atualizar o índice ativo ao rolar manualmente
   const aoRolar = (evento) => {
-    // ... (lógica de rolagem)
     const tamanhoDoSlide = evento.nativeEvent.layoutMeasurement.width;
     const indice = Math.round(
       evento.nativeEvent.contentOffset.x / tamanhoDoSlide
@@ -77,9 +72,9 @@ export default function CarrosselPersonalizado({ dados, navigation }) {
       <FlatList
         ref={referenciaFlatList}
         data={dados}
-        // Repassa a prop de navegação para cada item
-        renderItem={({ item }) => <ItemDoCarrossel item={item} navigation={navigation} />}
-        
+        renderItem={({ item }) => (
+          <ItemDoCarrossel item={item} aoClicarNoItem={aoClicarNoItem} />
+        )}
         keyExtractor={(item) => item.id.toString()}
         horizontal
         pagingEnabled
@@ -87,7 +82,7 @@ export default function CarrosselPersonalizado({ dados, navigation }) {
         onMomentumScrollEnd={aoRolar}
         style={estilos.carrossel}
       />
-      {/* ... (lógica dos pontinhos de paginação) */}
+      {/* Indicadores de Paginação (pontinhos) */}
       <View style={estilos.containerDaPaginacao}>
         {dados.map((_, indice) => (
           <View

@@ -99,3 +99,96 @@ export const getSeasonDetails = async (seriesId, seasonNumber) => {
     return [];
   }
 };
+
+// NOVA FUNÇÃO
+export const getMovieVideos = async (movieId) => {
+  try {
+    const response = await api.get(`/movie/${movieId}/videos`);
+    // A API retorna vários vídeos, procuramos o trailer oficial
+    const trailer = response.data.results.find(
+      (video) => video.site === 'YouTube' && video.type === 'Trailer'
+    );
+    // Retornamos apenas a chave do vídeo, ou null se não houver trailer
+    return trailer ? trailer.key : null;
+  } catch (error) {
+    console.error('Erro ao buscar vídeos do filme:', error);
+    return null;
+  }
+};
+
+// --- NOVAS FUNÇÕES ADICIONADAS ---
+
+export const getSeriesVideos = async (seriesId) => {
+  try {
+    const response = await api.get(`/tv/${seriesId}/videos`);
+    const trailer = response.data.results.find(
+      (video) => video.site === 'YouTube' && video.type === 'Trailer'
+    );
+    return trailer ? trailer.key : null;
+  } catch (error) {
+    console.error('Erro ao buscar vídeos da série:', error);
+    return null;
+  }
+};
+
+export const getEpisodeVideos = async (seriesId, seasonNumber, episodeNumber) => {
+    try {
+      const response = await api.get(`/tv/${seriesId}/season/${seasonNumber}/episode/${episodeNumber}/videos`);
+      const video = response.data.results.find(v => v.site === 'YouTube');
+      return video ? video.key : null;
+    } catch (error) {
+      console.error('Erro ao buscar vídeos do episódio:', error);
+      return null;
+    }
+  };
+
+
+  // NOVA FUNÇÃO
+export const getOnTheAirSeries = async () => {
+  try {
+    const response = await api.get('/tv/on_the_air');
+    // Pegamos as 5 primeiras para o carrossel, para manter o padrão
+    return response.data.results.slice(0, 5);
+  } catch (error) {
+    console.error('Erro ao buscar séries no ar:', error);
+    return [];
+  }
+};
+
+
+// --- NOVAS FUNÇÕES ---
+
+// NOVA FUNÇÃO
+export const getMovieCertifications = async (movieId) => {
+  try {
+    const response = await api.get(`/movie/${movieId}/release_dates`);
+    // Procura nos resultados o que for específico para o Brasil ('BR')
+    const resultsForBrazil = response.data.results.find(
+      (result) => result.iso_3166_1 === "BR"
+    );
+    // Dentro dos resultados do Brasil, pegamos a certificação do primeiro item
+    const certification = resultsForBrazil?.release_dates[0]?.certification;
+    // Se não encontrar uma certificação específica, retorna 'L' de Livre
+    return certification || 'L';
+  } catch (error) {
+    console.error('Erro ao buscar certificação do filme:', error);
+    return 'L'; // Retorna 'L' em caso de erro
+  }
+};
+
+export const getSeriesCertifications = async (seriesId) => {
+  try {
+    const response = await api.get(`/tv/${seriesId}/content_ratings`);
+    // Procuramos nos resultados o que for específico para o Brasil ('BR')
+    const ratingForBrazil = response.data.results.find(
+      (result) => result.iso_3166_1 === "BR"
+    );
+    // Se não encontrar, retorna 'L' de Livre como padrão
+    return ratingForBrazil?.rating || 'L';
+  } catch (error) {
+    console.error('Erro ao buscar classificação da série:', error);
+    return 'L';
+  }
+};
+
+

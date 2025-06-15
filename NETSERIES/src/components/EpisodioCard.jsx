@@ -1,35 +1,35 @@
 import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
-import { Text, Card } from 'react-native-paper';
+import { Text, Card, Icon } from 'react-native-paper';
 
-export default function EpisodioCard({ episodio, aoPressionar }) {
-  // A API da TMDB às vezes não tem imagem para um episódio.
-  // Se não tiver, usamos um placeholder.
+// O Card agora recebe um novo prop: 'estaAtivo'
+export default function EpisodioCard({ episodio, aoPressionar, estaAtivo = false }) {
+  if (!episodio) {
+    return null;
+  }
+
   const urlDaImagem = episodio.still_path
     ? `https://image.tmdb.org/t/p/w300${episodio.still_path}`
     : 'https://placehold.co/300x170/1F262E/FFFFFF?text=Sem+Imagem';
 
   return (
-    <Card style={estilos.card} onPress={aoPressionar}>
+    // Adicionamos um estilo condicional para a borda
+    <Card style={[estilos.card, estaAtivo && estilos.cardAtivo]} onPress={aoPressionar}>
       <View style={estilos.container}>
-        {/* Imagem do Episódio */}
         <Image source={{ uri: urlDaImagem }} style={estilos.imagem} />
-
-        {/* Informações do Episódio */}
         <View style={estilos.infoContainer}>
           <Text style={estilos.titulo} numberOfLines={1}>
-            {/* Exibe: "1. Título do Episódio" */}
             {`${episodio.episode_number || 'Ep.'}. ${episodio.name || 'Título Indisponível'}`}
           </Text>
-          <Text style={estilos.duracao}>
-            {/* Usa a duração do episódio ou um valor padrão de 45 min */}
-            {`${episodio.runtime || 'Duração Indisponível'} min`}
-          </Text>
+          <Text style={estilos.duracao}>{`${episodio.runtime || 'N/A'} min`}</Text>
           <Text style={estilos.descricao} numberOfLines={2}>
-            {/* Exibe a descrição ou um texto alternativo */}
             {episodio.overview || 'Descrição não disponível.'}
           </Text>
         </View>
+        {/* Renderiza o ícone de "play" apenas se o card estiver ativo */}
+        {estaAtivo && (
+          <Icon source="play-circle" color="#E50914" size={24} style={estilos.iconeAtivo} />
+        )}
       </View>
     </Card>
   );
@@ -39,20 +39,26 @@ const estilos = StyleSheet.create({
   card: {
     marginBottom: 15,
     backgroundColor: '#1F262E',
+    borderWidth: 2, // Borda padrão
+    borderColor: 'transparent', // Borda invisível por padrão
+  },
+  cardAtivo: {
+    borderColor: '#E50914', // Borda vermelha quando ativo
   },
   container: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   imagem: {
     width: 130,
     height: 90,
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
   },
   infoContainer: {
     flex: 1,
     padding: 10,
-    justifyContent: 'center', // Centraliza o conteúdo verticalmente
+    justifyContent: 'center',
   },
   titulo: {
     color: '#fff',
@@ -70,4 +76,7 @@ const estilos = StyleSheet.create({
     marginTop: 6,
     lineHeight: 18,
   },
+  iconeAtivo: {
+    marginRight: 10,
+  }
 });

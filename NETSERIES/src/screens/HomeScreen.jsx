@@ -12,55 +12,53 @@ import {
   getPopularSeries,
   getTopRated,
   getNowPlayingMovies,
+  getOnTheAirSeries,
 } from "../connection/movieService";
 import MovieCard from "../components/MovieCard";
 import CarrosselPersonalizado from "../components/CustomCarousel";
 
-// A TelaDeInicio agora recebe 'navigation' como prop
 export default function TelaDeInicio({ navigation }) {
   const [filmesEmDestaque, setFilmesEmDestaque] = useState([]);
   const [filmesPopulares, setFilmesPopulares] = useState([]);
   const [seriesPopulares, setSeriesPopulares] = useState([]);
+  const [seriesNoAr, setSeriesNoAr] = useState([]);
   const [emAlta, setEmAlta] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     async function buscarDados() {
-      // ... (lógica de buscar dados continua a mesma)
-      const [destaques, populares, series, alta] = await Promise.all([
+      const [destaques, populares, sPopulares, alta, noAr] = await Promise.all([
         getNowPlayingMovies(),
         getPopularMovies(),
         getPopularSeries(),
         getTopRated(),
+        getOnTheAirSeries(),
       ]);
 
       setFilmesEmDestaque(destaques);
       setFilmesPopulares(populares);
-      setSeriesPopulares(series);
+      setSeriesPopulares(sPopulares);
+      setSeriesNoAr(noAr);
       setEmAlta(alta);
       setCarregando(false);
     }
     buscarDados();
   }, []);
 
-  // MUDANÇA AQUI: Função de clique atualizada para navegar
   const aoClicarNoCard = (item, tipoDeMidia = null) => {
     const tipo = tipoDeMidia || item.media_type;
-
-    if (tipo === 'movie') {
-      // MUDANÇA: Passamos apenas o ID do item
-      navigation.navigate('FilmeDetalhe', { itemId: item.id });
-    } else if (tipo === 'tv') {
-      // MUDANÇA: Passamos apenas o ID da série
-      navigation.navigate('SerieDetalhe', { itemId: item.id });
+    if (tipo === "movie") {
+      navigation.navigate("FilmeDetalhe", { itemId: item.id });
+    } else if (tipo === "tv") {
+      navigation.navigate("SerieDetalhe", { itemId: item.id });
     }
   };
 
-  const renderizarSecao = (titulo, dados, tipoDeMidia = null) => (
+  // MUDANÇA: Adicionamos o parâmetro 'alinhamento'
+  const renderizarSecao = (titulo, dados, tipoDeMidia = null, alinhamento = 'left') => (
     <View style={estilos.secao}>
-      <Text style={estilos.tituloDaSecao} variant="headlineSmall">
-        {titulo}
-      </Text>
+      {/* O título agora usa um alinhamento dinâmico */}
+      <Text style={[estilos.tituloDaSecao, { textAlign: alinhamento }]}>{titulo}</Text>
       <FlatList
         data={dados}
         horizontal
@@ -83,16 +81,31 @@ export default function TelaDeInicio({ navigation }) {
 
   return (
     <ScrollView style={estilos.container}>
-      {/* MUDANÇA AQUI: Passamos 'navigation' para o carrossel */}
+      {/* Carrossel de Filmes em Destaque (ocupa a tela toda) */}
       <CarrosselPersonalizado
         dados={filmesEmDestaque}
-        navigation={navigation}
+        aoClicarNoItem={(item) => navigation.navigate("FilmeDetalhe", { itemId: item.id })}
       />
 
+{renderizarSecao("Filmes Populares", filmesPopulares, "movie")}
+
+      {/* MUDANÇA: Seção do Carrossel de Séries, agora fora do 'conteudo' */}
+      <View style={estilos.secaoDeCarrossel}>
+        <Text style={[estilos.tituloDaSecao, { paddingHorizontal: 14, textAlign: 'right' }]}>
+          Séries Novas no Ar
+        </Text>
+        <CarrosselPersonalizado
+          dados={seriesNoAr}
+          aoClicarNoItem={(item) => navigation.navigate("SerieDetalhe", { itemId: item.id })}
+        />
+      </View>
+      
+      {/* View 'conteudo' agora tem apenas as listas com espaçamento */}
       <View style={estilos.conteudo}>
-        {renderizarSecao("Filmes Populares", filmesPopulares, "movie")}
+        
         {renderizarSecao("Séries Populares", seriesPopulares, "tv")}
-        {renderizarSecao("Em Alta", emAlta)}
+        {/* MUDANÇA: Passamos o alinhamento 'right' para a seção "Em Alta" */}
+        {renderizarSecao("Em Alta", emAlta, null, 'right')}
       </View>
     </ScrollView>
   );
@@ -107,6 +120,18 @@ const estilos = StyleSheet.create({
     backgroundColor: "#14181C",
   },
   conteudo: { paddingHorizontal: 14, paddingBottom: 20 },
-  secao: { marginTop: 24 },
-  tituloDaSecao: { color: "#FFFFFF", fontWeight: "bold", marginBottom: 16 },
+  secaoDeCarrossel: { 
+    marginTop: 24 
+  },
+  secao: { 
+    marginTop: 24 
+  },
+  tituloDaSecao: { 
+    color: "#FFFFFF", 
+    fontWeight: "bold", 
+    marginBottom: 16,
+    fontSize: 20,
+    // Adicionamos o padding aqui para os títulos dentro do 'conteudo'
+    paddingHorizontal: 14
+  },
 });
