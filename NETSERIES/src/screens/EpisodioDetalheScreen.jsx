@@ -1,40 +1,46 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, Image, FlatList } from 'react-native';
-import { Text, Button, ActivityIndicator, Divider, Menu } from 'react-native-paper';
+import { Text, Button, Divider, Menu } from 'react-native-paper';
 import YoutubeIframe from 'react-native-youtube-iframe';
 import { getSeriesVideos, getSeasonDetails } from '../connection/movieService';
 import EpisodioCard from '../components/EpisodioCard';
+import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela de carregamento
 
 export default function EpisodioDetalheScreen({ route, navigation }) {
   const { episodio, serieId, detalhesDaSerie } = route.params;
 
   const [chaveDoTrailer, setChaveDoTrailer] = useState(null);
   const [reproduzindo, setReproduzindo] = useState(false);
-  const [carregandoTrailer, setCarregandoTrailer] = useState(true);
-  const [trailerIndisponivel, setTrailerIndisponivel] = useState(false);
-
+  
   const [episodiosDaTemporada, setEpisodiosDaTemporada] = useState([]);
   const [temporadaSelecionada, setTemporadaSelecionada] = useState(episodio.season_number);
   const [menuVisivel, setMenuVisivel] = useState(false);
   const [larguraDoBotao, setLarguraDoBotao] = useState(0);
 
-  useEffect(() => {
-    const buscarTrailer = async () => {
-      setCarregandoTrailer(true);
-      const chave = await getSeriesVideos(serieId);
-      setChaveDoTrailer(chave);
-      setCarregandoTrailer(false);
-    };
-    buscarTrailer();
-  }, [serieId]);
+  // 2. Unificamos o estado de carregamento
+  const [carregando, setCarregando] = useState(true);
 
+  // Efeito para buscar todos os dados necessários (trailer e lista de episódios)
   useEffect(() => {
-    const buscarEpisodios = async () => {
-      const dados = await getSeasonDetails(serieId, temporadaSelecionada);
-      setEpisodiosDaTemporada(dados);
+    const buscarDados = async () => {
+      setCarregando(true); // Inicia o carregamento
+      try {
+        // Busca o trailer e os episódios da temporada em paralelo
+        const [chave, dados] = await Promise.all([
+          getSeriesVideos(serieId),
+          getSeasonDetails(serieId, temporadaSelecionada)
+        ]);
+        setChaveDoTrailer(chave);
+        setEpisodiosDaTemporada(dados);
+      } catch (error) {
+        console.error("Erro ao buscar dados do episódio:", error);
+      } finally {
+        setCarregando(false); // Para o carregamento, independentemente do resultado
+      }
     };
-    buscarEpisodios();
-  }, [serieId, temporadaSelecionada]);
+    
+    buscarDados();
+  }, [serieId, temporadaSelecionada]); // Busca novamente se a temporada ou a série mudar
 
   const onStateChange = useCallback((state) => {
     if (state === 'ended') {
@@ -45,11 +51,15 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
   const handlePlay = () => {
     if (chaveDoTrailer) {
       setReproduzindo(true);
-      setTrailerIndisponivel(false);
     } else {
-      setTrailerIndisponivel(true);
+      // O Alert foi removido para uma experiência mais limpa, o botão já informa
     }
   };
+
+  // 3. Se estiver a carregar, exibe a nossa tela de carregamento
+  if (carregando) {
+    return <LoadingScreen />;
+  }
 
   const urlDoBanner = episodio.still_path
     ? `https://image.tmdb.org/t/p/w780${episodio.still_path}`
@@ -57,7 +67,7 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
 
   return (
     <ScrollView style={estilos.container}>
-      {/* Área do Player / Mensagem / Banner */}
+      {/* Área do Player/Banner */}
       <View style={estilos.areaDoPlayer}>
         {reproduzindo && chaveDoTrailer ? (
           <YoutubeIframe
@@ -66,12 +76,6 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
             videoId={chaveDoTrailer}
             onChangeState={onStateChange}
           />
-        ) : trailerIndisponivel ? (
-          <View style={[estilos.banner, { justifyContent: 'center', alignItems: 'center' }]}>
-            <Text style={estilos.mensagemIndisponivel}>
-              O trailer está temporariamente indisponível.
-            </Text>
-          </View>
         ) : (
           <Image source={{ uri: urlDoBanner }} style={estilos.banner} />
         )}
@@ -84,12 +88,12 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
         <Button
           mode="contained"
           onPress={handlePlay}
-          disabled={reproduzindo || carregandoTrailer}
+          disabled={reproduzindo || !chaveDoTrailer} // Desativa se estiver a tocar OU se não houver trailer
           icon="play"
           style={estilos.botaoAssistir}
           labelStyle={estilos.textoDoBotaoAssistir}
         >
-          {carregandoTrailer ? 'Buscando Trailer...' : reproduzindo ? 'Reproduzindo...' : 'Iniciar'}
+          {reproduzindo ? 'Reproduzindo...' : (chaveDoTrailer ? 'Iniciar' : 'Trailer Indisponível')}
         </Button>
       </View>
 
@@ -161,12 +165,6 @@ const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#14181C' },
   areaDoPlayer: { width: '100%', height: 220, backgroundColor: '#000' },
   banner: { width: '100%', height: '100%' },
-  mensagemIndisponivel: {
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
   conteudo: { padding: 14 },
   titulo: { color: 'white', fontWeight: 'bold' },
   textoDeMetadados: { color: '#a0a0a0', marginVertical: 10 },
@@ -180,7 +178,6 @@ const estilos = StyleSheet.create({
   textoDoBotaoAssistir: { fontSize: 16, fontWeight: 'bold' },
   divisor: { marginVertical: 15, backgroundColor: '#2a2a2a' },
   secaoDeEpisodios: { paddingHorizontal: 14, marginBottom: 30 },
-  tituloDeRelacionados: { color: 'white', marginBottom: 16 },
   listaDeEpisodios: { marginTop: 10 },
   botaoMenu: { borderColor: '#8A95A6' },
   conteudoBotaoMenu: { flexDirection: 'row-reverse' },

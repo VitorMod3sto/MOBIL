@@ -4,6 +4,9 @@ import { Text, ActivityIndicator, Chip, Menu, Button, Divider } from 'react-nati
 // 1. Importa a nova função de serviço
 import { getSeriesDetails, getSeasonDetails, getSeriesCertifications } from '../connection/movieService';
 import EpisodioCard from '../components/EpisodioCard';
+import { useCache } from '../contexts/CacheContext'; // 1. Importa o hook
+import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela
+
 
 export default function SerieDetalheScreen({ route, navigation }) {
   const { itemId } = route.params;
@@ -15,32 +18,35 @@ export default function SerieDetalheScreen({ route, navigation }) {
   const [carregando, setCarregando] = useState(true);
   const [menuDeTemporadasVisivel, setMenuDeTemporadasVisivel] = useState(false);
   const [larguraDoBotao, setLarguraDoBotao] = useState(0);
+  const { getCachedData } = useCache();
 
   // Efeito para buscar detalhes da série e sua classificação
   useEffect(() => {
     const buscarDadosDaSerie = async () => {
       setCarregando(true);
-      // 3. Busca os detalhes e a classificação em paralelo
       const [dadosDosDetalhes, dadosDaClassificacao] = await Promise.all([
-        getSeriesDetails(itemId),
-        getSeriesCertifications(itemId),
+        getCachedData(`seriesDetails-${itemId}`, () => getSeriesDetails(itemId)),
+        getCachedData(`seriesCerts-${itemId}`, () => getSeriesCertifications(itemId)),
       ]);
       setDetalhes(dadosDosDetalhes);
-      setClassificacao(dadosDaClassificacao); // 4. Guarda a classificação no estado
+      setClassificacao(dadosDaClassificacao);
     };
     buscarDadosDaSerie();
-  }, [itemId]);
+  }, [itemId, getCachedData]);
 
-  // Efeito separado para buscar episódios
   useEffect(() => {
-    if (!detalhes) return; // Só busca episódios depois que os detalhes da série chegarem
+    if (!detalhes) return;
     const buscarEpisodios = async () => {
-      const dadosDosEpisodios = await getSeasonDetails(itemId, temporadaSelecionada);
+      // 3. Busca os episódios da temporada usando o cache
+      const dadosDosEpisodios = await getCachedData(
+        `season-${itemId}-${temporadaSelecionada}`, 
+        () => getSeasonDetails(itemId, temporadaSelecionada)
+      );
       setEpisodios(dadosDosEpisodios);
-      setCarregando(false); // Para o loading aqui, depois de ter todos os dados iniciais
+      setCarregando(false);
     };
     buscarEpisodios();
-  }, [detalhes, temporadaSelecionada]);
+  }, [detalhes, temporadaSelecionada, getCachedData]);
 
   // Função auxiliar para estilizar a classificação
   const getEstiloDaClassificacao = (rating) => {
@@ -59,8 +65,9 @@ export default function SerieDetalheScreen({ route, navigation }) {
     return { corDeFundo, texto };
   };
 
+  // 2. MUDANÇA: Usa a nova tela de carregamento
   if (carregando) {
-    return <ActivityIndicator style={estilos.carregador} size="large" />;
+    return <LoadingScreen />;
   }
 
   if (!detalhes) {

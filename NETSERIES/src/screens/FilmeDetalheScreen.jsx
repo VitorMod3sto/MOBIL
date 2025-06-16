@@ -5,6 +5,10 @@ import YoutubeIframe from 'react-native-youtube-iframe';
 // 1. Importa a nova função de serviço
 import { getMovieDetails, getMovieRecommendations, getMovieVideos, getMovieCertifications } from '../connection/movieService';
 import MovieCard from '../components/MovieCard';
+import { useCache } from '../contexts/CacheContext'; // 1. Importa o hook
+import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela
+
+
 
 export default function FilmeDetalheScreen({ route, navigation }) {
   const { itemId } = route.params;
@@ -15,20 +19,22 @@ export default function FilmeDetalheScreen({ route, navigation }) {
   const [reproduzindo, setReproduzindo] = useState(false);
   const [classificacao, setClassificacao] = useState('L');
   const [carregando, setCarregando] = useState(true);
+   const { getCachedData } = useCache();
 
   useEffect(() => {
     const buscarDados = async () => {
       setCarregando(true);
+      // 3. Busca todos os dados em paralelo, usando o cache para cada um
       const [
-        dadosDosDetalhes,
-        dadosDasRecomendacoes,
+        dadosDosDetalhes, 
+        dadosDasRecomendacoes, 
         chaveDoVideo,
         dadosDaClassificacao
       ] = await Promise.all([
-        getMovieDetails(itemId),
-        getMovieRecommendations(itemId),
-        getMovieVideos(itemId),
-        getMovieCertifications(itemId)
+        getCachedData(`movieDetails-${itemId}`, () => getMovieDetails(itemId)),
+        getCachedData(`movieRecs-${itemId}`, () => getMovieRecommendations(itemId)),
+        getCachedData(`movieVideos-${itemId}`, () => getMovieVideos(itemId)),
+        getCachedData(`movieCerts-${itemId}`, () => getMovieCertifications(itemId))
       ]);
 
       setDetalhes(dadosDosDetalhes);
@@ -38,7 +44,7 @@ export default function FilmeDetalheScreen({ route, navigation }) {
       setCarregando(false);
     };
     buscarDados();
-  }, [itemId]);
+  }, [itemId, getCachedData]);
 
   const onStateChange = useCallback((state) => {
     if (state === 'ended') {
@@ -72,8 +78,8 @@ export default function FilmeDetalheScreen({ route, navigation }) {
     return { corDeFundo, texto };
   };
 
-  if (carregando) {
-    return <ActivityIndicator style={estilos.carregador} size="large" />;
+ if (carregando) {
+    return <LoadingScreen />;
   }
 
   if (!detalhes) {

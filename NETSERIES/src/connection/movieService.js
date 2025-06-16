@@ -191,4 +191,79 @@ export const getSeriesCertifications = async (seriesId) => {
   }
 };
 
+export const getTopRatedMovies = async () => {
+  try {
+    const response = await api.get('/movie/top_rated');
+    // Pegamos os 5 primeiros para o carrossel
+    return response.data.results.slice(0, 5);
+  } catch (error) {
+    console.error('Erro ao buscar filmes mais bem avaliados:', error);
+    return [];
+  }
+};
 
+export const getUpcomingMovies = async () => {
+  try {
+    const response = await api.get('/movie/upcoming');
+    // Pegamos os 5 primeiros para o carrossel
+    return response.data.results.slice(0, 5);
+  } catch (error) {
+    console.error('Erro ao buscar próximos lançamentos:', error);
+    return [];
+  }
+};
+
+// NOVA FUNÇÃO
+export const getMoviesByGenre = async (genreId) => {
+  try {
+    const response = await api.get('/discover/movie', {
+      params: {
+        with_genres: genreId,
+        sort_by: 'popularity.desc', // Ordena por popularidade para ter resultados relevantes
+      },
+    });
+    return response.data.results;
+  } catch (error) {
+    console.error(`Erro ao buscar filmes do gênero ${genreId}:`, error);
+    return [];
+  }
+};
+
+
+// NOVA FUNÇÃO
+export const getMovieGenres = async () => {
+  try {
+    const response = await api.get('/genre/movie/list');
+    return response.data.genres; // A API retorna um objeto com um array 'genres'
+  } catch (error) {
+    console.error('Erro ao buscar lista de géneros:', error);
+    return [];
+  }
+};
+
+// --- NOVAS FUNÇÕES PARA A TELA DE SÉRIES ---
+
+export const getSeriesGenres = async () => {
+  try {
+    const response = await api.get('/genre/tv/list');
+    return response.data.genres; // A API retorna um objeto com um array 'genres'
+  } catch (error) {
+    console.error('Erro ao buscar lista de géneros de séries:', error);
+    return [];
+  }
+};
+
+export const getSeriesByGenre = async (genreId) => {
+  try {
+    const response = await api.get('/discover/tv', {
+      params: {
+        with_genres: genreId,
+        sort_by: 'popularity.desc',
+      },
+    });
+    return response.data.results;
+  } catch (error) {
+    console.error(`Erro ao buscar séries do gênero ${genreId}:`, error);
+    return [];
+  }
+};

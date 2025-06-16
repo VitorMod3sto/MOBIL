@@ -16,6 +16,10 @@ import {
 } from "../connection/movieService";
 import MovieCard from "../components/MovieCard";
 import CarrosselPersonalizado from "../components/CustomCarousel";
+import DestaquePrincipal from "../components/DestaquePrincipal"; // 1. Importa o novo componente
+import { useCache } from "../contexts/CacheContext";
+import LoadingScreen from "../components/LoadingScreen"; // 1. Importa a nova tela
+
 
 export default function TelaDeInicio({ navigation }) {
   const [filmesEmDestaque, setFilmesEmDestaque] = useState([]);
@@ -23,16 +27,18 @@ export default function TelaDeInicio({ navigation }) {
   const [seriesPopulares, setSeriesPopulares] = useState([]);
   const [seriesNoAr, setSeriesNoAr] = useState([]);
   const [emAlta, setEmAlta] = useState([]);
+  const { getCachedData } = useCache();
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    async function buscarDados() {
+    const buscarDados = async () => {
+      setCarregando(true);
       const [destaques, populares, sPopulares, alta, noAr] = await Promise.all([
-        getNowPlayingMovies(),
-        getPopularMovies(),
-        getPopularSeries(),
-        getTopRated(),
-        getOnTheAirSeries(),
+        getCachedData('nowPlayingMovies', getNowPlayingMovies),
+        getCachedData('popularMovies', getPopularMovies),
+        getCachedData('popularSeries', getPopularSeries),
+        getCachedData('topRated', getTopRated),
+        getCachedData('onTheAirSeries', getOnTheAirSeries),
       ]);
 
       setFilmesEmDestaque(destaques);
@@ -41,9 +47,9 @@ export default function TelaDeInicio({ navigation }) {
       setSeriesNoAr(noAr);
       setEmAlta(alta);
       setCarregando(false);
-    }
+    };
     buscarDados();
-  }, []);
+  }, [getCachedData]);
 
   const aoClicarNoCard = (item, tipoDeMidia = null) => {
     const tipo = tipoDeMidia || item.media_type;
@@ -54,10 +60,8 @@ export default function TelaDeInicio({ navigation }) {
     }
   };
 
-  // MUDANÇA: Adicionamos o parâmetro 'alinhamento'
   const renderizarSecao = (titulo, dados, tipoDeMidia = null, alinhamento = 'left') => (
     <View style={estilos.secao}>
-      {/* O título agora usa um alinhamento dinâmico */}
       <Text style={[estilos.tituloDaSecao, { textAlign: alinhamento }]}>{titulo}</Text>
       <FlatList
         data={dados}
@@ -75,21 +79,18 @@ export default function TelaDeInicio({ navigation }) {
     </View>
   );
 
+  // 2. MUDANÇA: Se estiver a carregar, exibe a nossa nova tela
   if (carregando) {
-    return <ActivityIndicator style={estilos.carregador} size="large" />;
+    return <LoadingScreen />;
   }
+
 
   return (
     <ScrollView style={estilos.container}>
-      {/* Carrossel de Filmes em Destaque (ocupa a tela toda) */}
-      <CarrosselPersonalizado
-        dados={filmesEmDestaque}
-        aoClicarNoItem={(item) => navigation.navigate("FilmeDetalhe", { itemId: item.id })}
-      />
+      {/* 2. Substituímos o carrossel antigo pelo novo componente de destaque */}
+      <DestaquePrincipal dados={filmesEmDestaque} navigation={navigation} />
 
-{renderizarSecao("Filmes Populares", filmesPopulares, "movie")}
-
-      {/* MUDANÇA: Seção do Carrossel de Séries, agora fora do 'conteudo' */}
+      {/* Seção do carrossel de séries */}
       <View style={estilos.secaoDeCarrossel}>
         <Text style={[estilos.tituloDaSecao, { paddingHorizontal: 14, textAlign: 'right' }]}>
           Séries Novas no Ar
@@ -100,12 +101,11 @@ export default function TelaDeInicio({ navigation }) {
         />
       </View>
       
-      {/* View 'conteudo' agora tem apenas as listas com espaçamento */}
+      {/* Seções com listas de cards */}
       <View style={estilos.conteudo}>
-        
-        {renderizarSecao("Séries Populares", seriesPopulares, "tv")}
-        {/* MUDANÇA: Passamos o alinhamento 'right' para a seção "Em Alta" */}
-        {renderizarSecao("Em Alta", emAlta, null, 'right')}
+        {renderizarSecao("Filmes Populares", filmesPopulares, "movie")}
+{renderizarSecao("Séries Populares", seriesPopulares, "tv", 'right')}
+        {renderizarSecao("Em Alta", emAlta, null)}
       </View>
     </ScrollView>
   );
@@ -131,7 +131,6 @@ const estilos = StyleSheet.create({
     fontWeight: "bold", 
     marginBottom: 16,
     fontSize: 20,
-    // Adicionamos o padding aqui para os títulos dentro do 'conteudo'
     paddingHorizontal: 14
   },
 });
