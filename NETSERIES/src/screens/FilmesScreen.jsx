@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ActivityIndicator, FlatList } from 'react-native';
-import { Text, IconButton } from 'react-native-paper';
+// 1. Importamos o hook 'useTheme'
+import { Text, IconButton, useTheme } from 'react-native-paper';
 import { getMoviesByGenre, getMovieGenres } from '../connection/movieService';
 import MovieCard from '../components/MovieCard';
 import { useCache } from '../contexts/CacheContext';
-import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela
-
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function FilmesScreen({ navigation }) {
   const [listaDeGeneros, setListaDeGeneros] = useState([]);
   const [filmesPorGenero, setFilmesPorGenero] = useState({});
   const [carregando, setCarregando] = useState(true);
   const { getCachedData } = useCache();
+  const theme = useTheme(); // 2. Pega o objeto do tema atual
 
   useEffect(() => {
     const buscarDados = async () => {
@@ -47,10 +48,11 @@ export default function FilmesScreen({ navigation }) {
   const renderizarSecao = (genero) => (
     <View style={estilos.secao}>
       <View style={estilos.cabecalhoDaSecao}>
-        <Text style={estilos.tituloDaSecao}>{genero.name}</Text>
+        {/* 3. O título da seção agora pega a cor do tema */}
+        <Text style={[estilos.tituloDaSecao, { color: theme.colors.text }]}>{genero.name}</Text>
         <IconButton
           icon="arrow-right"
-          iconColor="#fff"
+          iconColor={theme.colors.text} // O ícone também usa a cor do tema
           size={20}
           onPress={() => navigation.navigate('GenreDetail', { 
             genreId: genero.id, 
@@ -75,15 +77,14 @@ export default function FilmesScreen({ navigation }) {
     </View>
   );
 
-  // 2. MUDANÇA: Usa a nova tela de carregamento
   if (carregando) {
     return <LoadingScreen />;
   }
 
-
   return (
+    // 4. A cor de fundo da FlatList agora vem do tema
     <FlatList
-      style={estilos.container}
+      style={[estilos.container, { backgroundColor: theme.colors.background }]}
       data={listaDeGeneros}
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => renderizarSecao(item)}
@@ -95,14 +96,8 @@ export default function FilmesScreen({ navigation }) {
 
 const estilos = StyleSheet.create({
   container: { 
-    flex: 1, 
-    backgroundColor: "#14181C" 
-  },
-  carregador: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#14181C",
+    // Cor de fundo removida daqui
   },
   secao: { 
     marginBottom: 14 
@@ -115,7 +110,7 @@ const estilos = StyleSheet.create({
     marginBottom: 16,
   },
   tituloDaSecao: { 
-    color: "#FFFFFF", 
+    // Cor de fundo removida daqui
     fontWeight: "bold", 
     fontSize: 20,
   },

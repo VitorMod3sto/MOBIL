@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ActivityIndicator, FlatList } from 'react-native';
-import { Text, IconButton } from 'react-native-paper';
+// 1. Importa o hook 'useTheme'
+import { Text, IconButton, useTheme } from 'react-native-paper';
 import { getSeriesByGenre, getSeriesGenres } from '../connection/movieService';
 import MovieCard from '../components/MovieCard';
 import { useCache } from '../contexts/CacheContext';
@@ -11,6 +12,7 @@ export default function SeriesScreen({ navigation }) {
   const [seriesPorGenero, setSeriesPorGenero] = useState({});
   const [carregando, setCarregando] = useState(true);
   const { getCachedData } = useCache();
+  const theme = useTheme(); // 2. Pega o objeto do tema atual
 
   useEffect(() => {
     const buscarDados = async () => {
@@ -46,12 +48,12 @@ export default function SeriesScreen({ navigation }) {
   const renderizarSecao = (genero) => (
     <View style={estilos.secao}>
       <View style={estilos.cabecalhoDaSecao}>
-        <Text style={estilos.tituloDaSecao}>{genero.name}</Text>
+        {/* 3. O título da seção agora pega a cor do tema */}
+        <Text style={[estilos.tituloDaSecao, { color: theme.colors.text }]}>{genero.name}</Text>
         <IconButton
           icon="arrow-right"
-          iconColor="#fff"
+          iconColor={theme.colors.text} // O ícone também usa a cor do tema
           size={20}
-          // MUDANÇA: O botão agora navega para a tela de detalhes do gênero
           onPress={() => {
             navigation.navigate('SeriesGenreDetail', { 
               genreId: genero.id, 
@@ -82,8 +84,9 @@ export default function SeriesScreen({ navigation }) {
   }
 
   return (
+    // 4. A cor de fundo da FlatList agora vem do tema
     <FlatList
-      style={estilos.container}
+      style={[estilos.container, { backgroundColor: theme.colors.background }]}
       data={listaDeGeneros}
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => renderizarSecao(item)}
@@ -96,7 +99,7 @@ export default function SeriesScreen({ navigation }) {
 const estilos = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#14181C" 
+    // Cor de fundo removida daqui
   },
   secao: { 
     marginBottom: 14 
@@ -109,7 +112,7 @@ const estilos = StyleSheet.create({
     marginBottom: 16,
   },
   tituloDaSecao: { 
-    color: "#FFFFFF", 
+    // Cor removida daqui
     fontWeight: "bold", 
     fontSize: 20,
   },

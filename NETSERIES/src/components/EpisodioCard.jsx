@@ -1,34 +1,47 @@
 import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
-import { Text, Card, Icon } from 'react-native-paper';
+// 1. Importa o hook 'useTheme'
+import { Text, Card, Icon, useTheme } from 'react-native-paper';
 
-// O Card agora recebe um novo prop: 'estaAtivo'
 export default function EpisodioCard({ episodio, aoPressionar, estaAtivo = false }) {
+  const theme = useTheme(); // 2. Pega o objeto do tema atual
+
   if (!episodio) {
     return null;
   }
 
+  // O placeholder agora também usa as cores do tema
   const urlDaImagem = episodio.still_path
     ? `https://image.tmdb.org/t/p/w300${episodio.still_path}`
-    : 'https://placehold.co/300x170/1F262E/FFFFFF?text=Sem+Imagem';
+    : `https://placehold.co/300x170/${theme.colors.surfaceVariant.substring(1)}/${theme.colors.onSurface.substring(1)}?text=Sem+Imagem`;
 
   return (
-    // Adicionamos um estilo condicional para a borda
-    <Card style={[estilos.card, estaAtivo && estilos.cardAtivo]} onPress={aoPressionar}>
+    // 3. O fundo do card e a borda agora usam as cores do tema
+    <Card 
+      style={[
+        estilos.card, 
+        { backgroundColor: theme.dark ? '#1F262E' : '#F5F5F5' },
+        { borderColor: theme.dark ? theme.colors.outline : 'black', borderWidth: 1 },
+        estaAtivo && { borderColor: theme.colors.primary, borderWidth: 2 }
+      ]} 
+      onPress={aoPressionar}
+    >
       <View style={estilos.container}>
         <Image source={{ uri: urlDaImagem }} style={estilos.imagem} />
         <View style={estilos.infoContainer}>
-          <Text style={estilos.titulo} numberOfLines={1}>
+          {/* 4. Os textos também usam as cores do tema */}
+          <Text style={[estilos.titulo, { color: theme.colors.text }]} numberOfLines={1}>
             {`${episodio.episode_number || 'Ep.'}. ${episodio.name || 'Título Indisponível'}`}
           </Text>
-          <Text style={estilos.duracao}>{`${episodio.runtime || 'N/A'} min`}</Text>
-          <Text style={estilos.descricao} numberOfLines={2}>
+          <Text style={[estilos.duracao, { color: theme.colors.onSurfaceVariant }]}>
+            {`${episodio.runtime || 'N/A'} min`}
+          </Text>
+          <Text style={[estilos.descricao, { color: theme.dark ? theme.colors.onSurfaceVariant : 'black' }]} numberOfLines={2}>
             {episodio.overview || 'Descrição não disponível.'}
           </Text>
         </View>
-        {/* Renderiza o ícone de "play" apenas se o card estiver ativo */}
         {estaAtivo && (
-          <Icon source="play-circle" color="#E50914" size={24} style={estilos.iconeAtivo} />
+          <Icon source="play-circle" color={theme.colors.primary} size={24} style={estilos.iconeAtivo} />
         )}
       </View>
     </Card>
@@ -38,22 +51,18 @@ export default function EpisodioCard({ episodio, aoPressionar, estaAtivo = false
 const estilos = StyleSheet.create({
   card: {
     marginBottom: 15,
-    backgroundColor: '#1F262E',
-    borderWidth: 2, // Borda padrão
-    borderColor: 'transparent', // Borda invisível por padrão
-  },
-  cardAtivo: {
-    borderColor: '#E50914', // Borda vermelha quando ativo
+    // CORREÇÃO: A propriedade 'overflow: hidden' foi removida daqui
+    // para evitar o warning do Surface.
   },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   imagem: {
-    width: 130,
+    width: 120,
     height: 90,
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    marginLeft: 5,
+    borderRadius: 8, // O arredondamento da imagem garante o efeito visual
   },
   infoContainer: {
     flex: 1,
@@ -61,17 +70,14 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
   },
   titulo: {
-    color: '#fff',
     fontWeight: 'bold',
     fontSize: 15,
   },
   duracao: {
-    color: '#a0a0a0',
     fontSize: 12,
     marginTop: 4,
   },
   descricao: {
-    color: '#d0d0d0',
     fontSize: 13,
     marginTop: 6,
     lineHeight: 18,

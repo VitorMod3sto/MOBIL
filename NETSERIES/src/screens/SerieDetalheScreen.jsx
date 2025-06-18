@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ScrollView, Image, FlatList } from 'react-native';
-import { Text, ActivityIndicator, Chip, Menu, Button, Divider } from 'react-native-paper';
-// 1. Importa a nova função de serviço
+import { Text, ActivityIndicator, Chip, Menu, Button, Divider, useTheme, TouchableRipple } from 'react-native-paper';
 import { getSeriesDetails, getSeasonDetails, getSeriesCertifications } from '../connection/movieService';
 import EpisodioCard from '../components/EpisodioCard';
-import { useCache } from '../contexts/CacheContext'; // 1. Importa o hook
-import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela
-
+import { useCache } from '../contexts/CacheContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function SerieDetalheScreen({ route, navigation }) {
   const { itemId } = route.params;
+  const { getCachedData } = useCache();
+  const theme = useTheme();
 
   const [detalhes, setDetalhes] = useState(null);
   const [episodios, setEpisodios] = useState([]);
   const [temporadaSelecionada, setTemporadaSelecionada] = useState(1);
-  const [classificacao, setClassificacao] = useState('L'); // 2. Novo estado para a classificação
+  const [classificacao, setClassificacao] = useState('L');
   const [carregando, setCarregando] = useState(true);
   const [menuDeTemporadasVisivel, setMenuDeTemporadasVisivel] = useState(false);
   const [larguraDoBotao, setLarguraDoBotao] = useState(0);
-  const { getCachedData } = useCache();
 
-  // Efeito para buscar detalhes da série e sua classificação
   useEffect(() => {
     const buscarDadosDaSerie = async () => {
       setCarregando(true);
@@ -37,9 +35,8 @@ export default function SerieDetalheScreen({ route, navigation }) {
   useEffect(() => {
     if (!detalhes) return;
     const buscarEpisodios = async () => {
-      // 3. Busca os episódios da temporada usando o cache
       const dadosDosEpisodios = await getCachedData(
-        `season-${itemId}-${temporadaSelecionada}`, 
+        `season-${itemId}-${temporadaSelecionada}`,
         () => getSeasonDetails(itemId, temporadaSelecionada)
       );
       setEpisodios(dadosDosEpisodios);
@@ -48,55 +45,49 @@ export default function SerieDetalheScreen({ route, navigation }) {
     buscarEpisodios();
   }, [detalhes, temporadaSelecionada, getCachedData]);
 
-  // Função auxiliar para estilizar a classificação
   const getEstiloDaClassificacao = (rating) => {
-    let corDeFundo = '#28a745'; // Verde (Livre)
+    let corDeFundo = '#28a745';
     let texto = rating || 'L';
-
     if (rating && !isNaN(rating)) {
       const idade = parseInt(rating);
       texto = `${idade}+`;
       if (idade >= 18) {
-        corDeFundo = '#dc3545'; // Vermelho
+        corDeFundo = '#dc3545';
       } else if (idade >= 14) {
-        corDeFundo = '#0d6efd'; // Azul
+        corDeFundo = '#0d6efd';
       }
     }
     return { corDeFundo, texto };
   };
 
-  // 2. MUDANÇA: Usa a nova tela de carregamento
   if (carregando) {
     return <LoadingScreen />;
   }
 
   if (!detalhes) {
-    return <Text style={estilos.textoDeErro}>Não foi possível carregar os detalhes.</Text>;
+    return <Text style={[estilos.textoDeErro, { color: theme.colors.text }]}>Não foi possível carregar os detalhes.</Text>;
   }
 
   const abrirMenu = () => setMenuDeTemporadasVisivel(true);
   const fecharMenu = () => setMenuDeTemporadasVisivel(false);
 
-  // Pega o estilo e o texto formatado para a classificação
   const { corDeFundo, texto } = getEstiloDaClassificacao(classificacao);
 
   return (
-    <ScrollView style={estilos.container}>
+    <ScrollView style={[estilos.container, { backgroundColor: theme.colors.background }]}>
       <Image source={{ uri: `https://image.tmdb.org/t/p/w780${detalhes.backdrop_path}` }} style={estilos.banner} />
       <View style={estilos.conteudo}>
-        <Text variant="headlineLarge" style={estilos.titulo}>{detalhes.name}</Text>
+        <Text variant="headlineLarge" style={[estilos.titulo, { color: theme.colors.text }]}>{detalhes.name}</Text>
         <View style={estilos.containerDeMetadados}>
-          <Text style={estilos.textoDeMetadados}>{new Date(detalhes.first_air_date).getFullYear()}</Text>
-          <Text style={estilos.textoDeMetadados}>{`${detalhes.number_of_seasons} Temporada(s)`}</Text>
-          {/* 5. Exibe a classificação dinâmica com cores e texto corretos */}
+          <Text style={[estilos.textoDeMetadados, { color: theme.colors.onSurfaceVariant }]}>{new Date(detalhes.first_air_date).getFullYear()}</Text>
+          <Text style={[estilos.textoDeMetadados, { color: theme.colors.onSurfaceVariant }]}>{`${detalhes.number_of_seasons} Temporada(s)`}</Text>
           <Chip style={[estilos.etiqueta, { backgroundColor: corDeFundo }]} textStyle={{ color: '#fff' }} compact>{texto}</Chip>
         </View>
-        <Text style={estilos.descricao}>{detalhes.overview}</Text>
+        <Text style={[estilos.descricao, { color: theme.colors.onSurfaceVariant }]}>{detalhes.overview}</Text>
       </View>
 
-      <Divider style={estilos.divisor} />
+      <Divider style={{ backgroundColor: theme.colors.outline }} />
 
-      {/* Seletor de Temporadas e Lista de Episódios */}
       <View style={estilos.secaoDeEpisodios}>
         <Menu
           visible={menuDeTemporadasVisivel}
@@ -107,31 +98,43 @@ export default function SerieDetalheScreen({ route, navigation }) {
               onPress={abrirMenu}
               icon={menuDeTemporadasVisivel ? "chevron-up" : "chevron-down"}
               mode="outlined"
-              style={estilos.botaoMenu}
+              style={[estilos.botaoMenu, { borderColor: theme.colors.outline }]}
               contentStyle={estilos.conteudoBotaoMenu}
-              labelStyle={estilos.textoBotaoMenu}
+              labelStyle={[estilos.textoBotaoMenu, { color: theme.colors.text }]}
+              rippleColor="rgba(128, 128, 128, 0.2)"
             >
               {`Temporada ${temporadaSelecionada}`}
             </Button>
           }
           style={{ marginTop: 45, width: larguraDoBotao }}
-          contentStyle={estilos.estiloDoMenu}
+          contentStyle={[estilos.estiloDoMenu, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline }]}
         >
-          <View style={{ borderRadius: 4, overflow: 'hidden' }}>
+          <View style={estilos.menuWrapper}>
             <ScrollView style={{ maxHeight: 300 }}>
               {detalhes.seasons
                 .filter(season => season.season_number > 0)
-                .map(season => (
-                  <Menu.Item
-                    key={season.id}
-                    onPress={() => {
-                      setTemporadaSelecionada(season.season_number);
-                      fecharMenu();
-                    }}
-                    title={`Temporada ${season.season_number}`}
-                    titleStyle={estilos.textoDoMenuItem}
-                  />
-                ))}
+                .map(season => {
+                  const estaAtiva = temporadaSelecionada === season.season_number;
+                  return (
+                    <TouchableRipple
+                      key={season.id}
+                      onPress={() => {
+                        setTemporadaSelecionada(season.season_number);
+                        fecharMenu();
+                      }}
+                      rippleColor="rgba(0, 0, 0, .1)"
+                    >
+                      <View style={[
+                        estilos.itemTemporada,
+                        estaAtiva && estilos.menuItemAtivo
+                      ]}>
+                        <Text style={[estilos.textoDoMenuItem, { color: theme.colors.text }]}>
+                          {`Temporada ${season.season_number}`}
+                        </Text>
+                      </View>
+                    </TouchableRipple>
+                  )
+                })}
             </ScrollView>
           </View>
         </Menu>
@@ -160,31 +163,36 @@ export default function SerieDetalheScreen({ route, navigation }) {
 }
 
 const estilos = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#14181C' },
-    carregador: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#14181C' },
-    textoDeErro: { color: 'white', textAlign: 'center', marginTop: 50 },
-    banner: { width: '100%', height: 220 },
-    conteudo: { padding: 14 },
-    titulo: { color: 'white', fontWeight: 'bold' },
-    containerDeMetadados: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
-    textoDeMetadados: { color: '#a0a0a0', marginRight: 15 },
-    etiqueta: { marginRight: 15 },
-    descricao: { color: '#d0d0d0', fontSize: 15, lineHeight: 22 },
-    divisor: { marginVertical: 15, backgroundColor: '#2a2a2a' },
-    secaoDeEpisodios: { paddingHorizontal: 14, marginBottom: 30 },
-    botaoMenu: { borderColor: '#8A95A6' },
-    conteudoBotaoMenu: { flexDirection: 'row-reverse' },
-    textoBotaoMenu: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-    listaDeEpisodios: { marginTop: 10 },
-    estiloDoMenu: {
-      backgroundColor: '#1F262E',
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: '#8A95A6',
-    },
-    textoDoMenuItem: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold'
-    },
+  container: { flex: 1 },
+  textoDeErro: { textAlign: 'center', marginTop: 50 },
+  banner: { width: '100%', height: 220 },
+  conteudo: { padding: 14 },
+  titulo: { fontWeight: 'bold' },
+  containerDeMetadados: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
+  textoDeMetadados: { marginRight: 15 },
+  etiqueta: { marginRight: 15 },
+  descricao: { fontSize: 15, lineHeight: 22 },
+  divisor: { marginVertical: 15 },
+  secaoDeEpisodios: { paddingHorizontal: 14, marginBottom: 30 },
+  botaoMenu: {},
+  conteudoBotaoMenu: { flexDirection: 'row-reverse' },
+  textoBotaoMenu: { fontSize: 16, fontWeight: 'bold' },
+  listaDeEpisodios: { marginTop: 10 },
+  menuWrapper: {
+    borderRadius: 4,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  itemTemporada: {
+    width: '100%',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  menuItemAtivo: {
+    backgroundColor: 'rgba(128, 128, 128, 0.2)',
+  },
+  textoDoMenuItem: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

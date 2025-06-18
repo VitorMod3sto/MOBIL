@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Dimensions, FlatList, ImageBackground, TouchableOpacity } from 'react-native';
-import { Text, Chip } from 'react-native-paper';
+import { Text, Chip, useTheme } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getMovieDetails, getMovieCertifications } from '../connection/movieService';
 import { useCache } from '../contexts/CacheContext';
@@ -14,32 +14,36 @@ const getEstiloDaClassificacao = (rating) => {
     if (rating && !isNaN(rating)) {
       const idade = parseInt(rating);
       texto = `${idade}+`;
-      if (idade >= 18) corDeFundo = '#dc3545';
-      else if (idade >= 14) corDeFundo = '#0d6efd';
+      if (idade >= 18) {
+        corDeFundo = '#dc3545';
+      } else if (idade >= 14) {
+        corDeFundo = '#0d6efd';
+      }
     }
     return { corDeFundo, texto };
 };
 
-// O item do carrossel agora recebe todos os seus detalhes de uma vez
-const ItemDeDestaque = ({ item, detalhes, aoPressionar }) => {
+const ItemDeDestaque = ({ item, detalhes, aoPressionar, theme }) => {
   const urlDaImagem = `https://image.tmdb.org/t/p/w780${item.poster_path}`;
   const { corDeFundo, texto } = getEstiloDaClassificacao(detalhes?.classificacao);
   
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={aoPressionar}>
-      <ImageBackground source={{ uri: urlDaImagem }} style={estilos.banner}>
+      <ImageBackground source={{ uri: urlDaImagem }} style={[estilos.banner, { backgroundColor: theme.colors.surface }]}>
         <LinearGradient
-          colors={['transparent', 'rgba(20, 24, 28, 0.8)', '#14181C']}
+          colors={['transparent', 'rgba(0,0,0,0.6)', theme.colors.background]}
           style={estilos.sobreposicao}
         >
-          <Text style={estilos.tituloDoFilme} variant="displaySmall">{item.title}</Text>
+          <Text style={[estilos.tituloDoFilme, { color: '#FFFFFF' }]} variant="displaySmall">{item.title}</Text>
           <View style={estilos.containerDeMetadados}>
-            <Text style={estilos.textoDeMetadados}>{detalhes?.release_date?.substring(0, 4)}</Text>
+            {/* MUDANÇA: A cor agora é sempre branca */}
+            <Text style={[estilos.textoDeMetadados, { color: '#FFFFFF' }]}>{detalhes?.release_date?.substring(0, 4)}</Text>
             {detalhes?.classificacao !== 'L' && (
               <Chip style={[estilos.etiqueta, { backgroundColor: corDeFundo }]} textStyle={{color: '#fff'}} compact>{texto}</Chip>
             )}
           </View>
-          <Text style={estilos.descricao} numberOfLines={3}>
+          {/* MUDANÇA: A cor agora é sempre branca */}
+          <Text style={[estilos.descricao, { color: '#FFFFFF' }]} numberOfLines={3}>
             {detalhes?.overview}
           </Text>
         </LinearGradient>
@@ -50,17 +54,15 @@ const ItemDeDestaque = ({ item, detalhes, aoPressionar }) => {
 
 export default function DestaquePrincipal({ dados, navigation }) {
   const [indiceAtivo, setIndiceAtivo] = useState(0);
-  // MUDANÇA: Um estado para guardar os detalhes de TODOS os filmes do carrossel
   const [detalhesCarregados, setDetalhesCarregados] = useState({});
   const { getCachedData } = useCache();
+  const theme = useTheme();
   const flatListRef = useRef(null);
 
-  // MUDANÇA: Este efeito agora busca os detalhes de todos os filmes de uma vez
   useEffect(() => {
     if (!dados || dados.length === 0) return;
 
     const buscarTodosOsDetalhes = async () => {
-      // Cria uma lista de "promessas" para buscar os detalhes de cada filme
       const promessasDeDetalhes = dados.map(filme => 
         Promise.all([
           getCachedData(`movieDetails-${filme.id}`, () => getMovieDetails(filme.id)),
@@ -68,16 +70,14 @@ export default function DestaquePrincipal({ dados, navigation }) {
         ])
       );
       
-      // Espera todas as buscas terminarem
       const resultados = await Promise.all(promessasDeDetalhes);
 
-      // Organiza os resultados num formato fácil de usar: { idDoFilme: { detalhes, classificacao } }
       const detalhesMapeados = {};
       resultados.forEach((resultado, index) => {
         const idDoFilme = dados[index].id;
         detalhesMapeados[idDoFilme] = {
-          ...resultado[0], // Detalhes do filme (overview, etc.)
-          classificacao: resultado[1] // Classificação de idade
+          ...resultado[0], 
+          classificacao: resultado[1] 
         };
       });
       
@@ -103,11 +103,11 @@ export default function DestaquePrincipal({ dados, navigation }) {
         ref={flatListRef}
         data={dados}
         renderItem={({ item }) => (
-          // Passamos os detalhes pré-carregados para o componente de item
           <ItemDeDestaque
             item={item}
             detalhes={detalhesCarregados[item.id]}
             aoPressionar={() => navigation.navigate("FilmeDetalhe", { itemId: item.id })}
+            theme={theme}
           />
         )}
         keyExtractor={(item) => item.id.toString()}
@@ -117,12 +117,12 @@ export default function DestaquePrincipal({ dados, navigation }) {
         onMomentumScrollEnd={aoRolar}
       />
       <View style={estilos.containerDaPaginacao}>
-        {dados.map((_, indice) => (
+        {dados && dados.map((_, indice) => (
           <View
             key={indice}
             style={[
               estilos.estiloDoPonto,
-              { backgroundColor: indice === indiceAtivo ? 'white' : 'rgba(255, 255, 255, 0.4)' },
+              { backgroundColor: indice === indiceAtivo ? theme.colors.primary : theme.colors.onSurfaceDisabled },
             ]}
           />
         ))}
@@ -140,7 +140,6 @@ const estilos = StyleSheet.create({
     width: larguraDaTela,
     height: '100%',
     justifyContent: 'flex-end',
-    backgroundColor: '#1F262E'
   },
   sobreposicao: {
     ...StyleSheet.absoluteFillObject,
@@ -149,11 +148,10 @@ const estilos = StyleSheet.create({
     paddingBottom: 40,
   },
   tituloDoFilme: {
-    color: 'white',
     fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowColor: 'black',
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 5,
+    textShadowRadius: 2,
   },
   containerDeMetadados: {
     flexDirection: 'row',
@@ -161,18 +159,25 @@ const estilos = StyleSheet.create({
     marginTop: 12,
   },
   textoDeMetadados: {
-    color: '#d0d0d0',
     marginRight: 15,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    // MUDANÇA: Sombra mais escura e nítida para criar o efeito de borda
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 1.5, height: 1.5 },
+    textShadowRadius: 1,
   },
   etiqueta: {
     paddingHorizontal: 2,
   },
   descricao: {
-    color: '#d0d0d0',
     fontSize: 15,
     lineHeight: 22,
     marginTop: 12,
+    fontWeight: 'bold',
+    // MUDANÇA: Sombra mais escura e nítida para criar o efeito de borda
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 1.5, height: 1.5 },
+    textShadowRadius: 1,
   },
   containerDaPaginacao: { 
     position: 'absolute', 

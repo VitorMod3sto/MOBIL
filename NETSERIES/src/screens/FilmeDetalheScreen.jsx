@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, Image, FlatList, Alert } from 'react-native';
-import { Text, Button, ActivityIndicator, Chip } from 'react-native-paper';
+// 1. Importamos o 'useTheme'
+import { Text, Button, Chip, useTheme } from 'react-native-paper';
 import YoutubeIframe from 'react-native-youtube-iframe';
-// 1. Importa a nova função de serviço
 import { getMovieDetails, getMovieRecommendations, getMovieVideos, getMovieCertifications } from '../connection/movieService';
 import MovieCard from '../components/MovieCard';
-import { useCache } from '../contexts/CacheContext'; // 1. Importa o hook
-import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela
-
-
+import { useCache } from '../contexts/CacheContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function FilmeDetalheScreen({ route, navigation }) {
   const { itemId } = route.params;
+  const { getCachedData } = useCache();
+  const theme = useTheme(); // 2. Pega o objeto do tema atual
 
   const [detalhes, setDetalhes] = useState(null);
   const [recomendacoes, setRecomendacoes] = useState([]);
@@ -19,12 +19,10 @@ export default function FilmeDetalheScreen({ route, navigation }) {
   const [reproduzindo, setReproduzindo] = useState(false);
   const [classificacao, setClassificacao] = useState('L');
   const [carregando, setCarregando] = useState(true);
-   const { getCachedData } = useCache();
 
   useEffect(() => {
     const buscarDados = async () => {
       setCarregando(true);
-      // 3. Busca todos os dados em paralelo, usando o cache para cada um
       const [
         dadosDosDetalhes, 
         dadosDasRecomendacoes, 
@@ -60,30 +58,28 @@ export default function FilmeDetalheScreen({ route, navigation }) {
     }
   };
 
-  // MUDANÇA: Função auxiliar para estilizar a classificação
   const getEstiloDaClassificacao = (rating) => {
-    // Padrão para 'L' (Livre) ou valores não numéricos
-    let corDeFundo = '#28a745'; // Verde
+    let corDeFundo = '#28a745';
     let texto = rating || 'L';
 
     if (rating && !isNaN(rating)) {
       const idade = parseInt(rating);
-      texto = `${idade}+`; // Adiciona o '+'
+      texto = `${idade}+`;
       if (idade >= 18) {
-        corDeFundo = '#dc3545'; // Vermelho
+        corDeFundo = '#dc3545';
       } else if (idade >= 14) {
-        corDeFundo = '#0d6efd'; // Azul
+        corDeFundo = '#0d6efd';
       }
     }
     return { corDeFundo, texto };
   };
 
- if (carregando) {
+  if (carregando) {
     return <LoadingScreen />;
   }
 
   if (!detalhes) {
-    return <Text style={estilos.textoDeErro}>Não foi possível carregar os detalhes.</Text>;
+    return <Text style={[estilos.textoDeErro, { color: theme.colors.text }]}>Não foi possível carregar os detalhes.</Text>;
   }
 
   const formatarDuracao = (duracao) => {
@@ -92,53 +88,45 @@ export default function FilmeDetalheScreen({ route, navigation }) {
     const minutos = duracao % 60;
     return `${horas}h ${minutos}m`;
   };
-
-  // Pega o estilo e o texto formatado para a classificação
+  
   const { corDeFundo, texto } = getEstiloDaClassificacao(classificacao);
 
   return (
-    <ScrollView style={estilos.container}>
-      {/* Área do Player/Banner */}
+    // 3. A cor de fundo do ScrollView agora vem do tema
+    <ScrollView style={[estilos.container, { backgroundColor: theme.colors.background }]}>
       <View style={estilos.areaDoPlayer}>
         {reproduzindo && chaveDoTrailer ? (
-          <YoutubeIframe
-            height={220}
-            play={true}
-            videoId={chaveDoTrailer}
-            onChangeState={onStateChange}
-          />
+          <YoutubeIframe height={220} play={true} videoId={chaveDoTrailer} onChangeState={onStateChange} />
         ) : (
-          <Image
-            source={{ uri: `https://image.tmdb.org/t/p/w780${detalhes.backdrop_path}` }}
-            style={estilos.banner}
-          />
+          <Image source={{ uri: `https://image.tmdb.org/t/p/w780${detalhes.backdrop_path}` }} style={estilos.banner} />
         )}
       </View>
 
       <View style={estilos.conteudo}>
-        <Text variant="headlineLarge" style={estilos.titulo}>{detalhes.title}</Text>
+        {/* 4. Os textos agora usam as cores do tema */}
+        <Text variant="headlineLarge" style={[estilos.titulo, { color: theme.colors.text }]}>{detalhes.title}</Text>
         <View style={estilos.containerDeMetadados}>
-          <Text style={estilos.textoDeMetadados}>{new Date(detalhes.release_date).getFullYear()}</Text>
-          <Text style={estilos.textoDeMetadados}>{formatarDuracao(detalhes.runtime)}</Text>
-          {/* MUDANÇA: Adicionada a prop 'compact' para diminuir o padding */}
+          <Text style={[estilos.textoDeMetadados, { color: theme.colors.onSurfaceVariant }]}>{new Date(detalhes.release_date).getFullYear()}</Text>
+          <Text style={[estilos.textoDeMetadados, { color: theme.colors.onSurfaceVariant }]}>{formatarDuracao(detalhes.runtime)}</Text>
           <Chip style={[estilos.etiqueta, { backgroundColor: corDeFundo }]} textStyle={{color: '#fff'}} compact>{texto}</Chip>
         </View>
-        <Text style={estilos.descricao}>{detalhes.overview}</Text>
-        <Button
-          mode="contained"
-          onPress={handlePlay}
-          disabled={reproduzindo}
-          icon="play"
-          style={estilos.botaoAssistir}
-          labelStyle={estilos.textoDoBotaoAssistir}
-        >
+        <Text style={[estilos.descricao, { color: theme.colors.onSurfaceVariant }]}>{detalhes.overview}</Text>
+        <Button 
+            mode="contained" 
+            onPress={handlePlay} 
+            disabled={reproduzindo} 
+            icon="play" 
+            style={estilos.botaoAssistir} 
+            // MUDANÇA: Cores dinâmicas para o botão
+            buttonColor={theme.dark ? '#E50914' : '#E50914'}
+            textColor={theme.dark ? '#FFFFFF' : '#000000'}
+            labelStyle={estilos.textoDoBotaoAssistir}>
           {reproduzindo ? 'Reproduzindo...' : 'Iniciar'}
         </Button>
       </View>
 
-      {/* Seção de Relacionados */}
       <View style={estilos.secaoDeRelacionados}>
-        <Text variant="headlineSmall" style={estilos.tituloDeRelacionados}>Relacionados</Text>
+        <Text variant="headlineSmall" style={[estilos.tituloDeRelacionados, { color: theme.colors.text }]}>Relacionados</Text>
         <FlatList
           data={recomendacoes}
           horizontal
@@ -155,23 +143,19 @@ export default function FilmeDetalheScreen({ route, navigation }) {
 }
 
 const estilos = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#14181C' },
-    carregador: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#14181C' },
-    textoDeErro: { color: 'white', textAlign: 'center', marginTop: 50 },
-    areaDoPlayer: {
-      width: '100%',
-      height: 220,
-      backgroundColor: '#000',
-    },
+    container: { flex: 1 },
+    textoDeErro: { textAlign: 'center', marginTop: 50 },
+    areaDoPlayer: { width: '100%', height: 220, backgroundColor: '#000' },
     banner: { width: '100%', height: '100%' },
     conteudo: { padding: 14 },
-    titulo: { color: 'white', fontWeight: 'bold' },
+    titulo: { fontWeight: 'bold' },
     containerDeMetadados: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
-    textoDeMetadados: { color: '#a0a0a0', marginRight: 15 },
+    textoDeMetadados: { marginRight: 15 },
     etiqueta: { marginRight: 15 },
-    descricao: { color: '#d0d0d0', fontSize: 15, lineHeight: 22, marginVertical: 10 },
-    botaoAssistir: { backgroundColor: '#E50914', borderRadius: 5, marginVertical: 15, paddingVertical: 4 },
+    descricao: { fontSize: 15, lineHeight: 22, marginVertical: 10 },
+    // MUDANÇA: Removemos a cor de fundo fixa
+    botaoAssistir: { borderRadius: 5, marginVertical: 15, paddingVertical: 4 },
     textoDoBotaoAssistir: { fontSize: 16, fontWeight: 'bold' },
     secaoDeRelacionados: { marginTop: 10, marginBottom: 30 },
-    tituloDeRelacionados: { color: 'white', marginLeft: 14, marginBottom: 16 },
+    tituloDeRelacionados: { marginLeft: 14, marginBottom: 16 },
 });

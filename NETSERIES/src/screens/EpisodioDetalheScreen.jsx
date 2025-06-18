@@ -1,46 +1,45 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, Image, FlatList } from 'react-native';
-import { Text, Button, Divider, Menu } from 'react-native-paper';
+import { StyleSheet, View, ScrollView, Image, FlatList, Alert } from 'react-native';
+// 1. Importa o hook 'useTheme'
+import { Text, Button, Divider, Menu, useTheme } from 'react-native-paper';
 import YoutubeIframe from 'react-native-youtube-iframe';
 import { getSeriesVideos, getSeasonDetails } from '../connection/movieService';
 import EpisodioCard from '../components/EpisodioCard';
-import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela de carregamento
+import LoadingScreen from '../components/LoadingScreen';
+import { useCache } from '../contexts/CacheContext';
 
 export default function EpisodioDetalheScreen({ route, navigation }) {
   const { episodio, serieId, detalhesDaSerie } = route.params;
+  const theme = useTheme(); // 2. Pega o objeto do tema atual
+  const { getCachedData } = useCache();
 
   const [chaveDoTrailer, setChaveDoTrailer] = useState(null);
   const [reproduzindo, setReproduzindo] = useState(false);
-  
   const [episodiosDaTemporada, setEpisodiosDaTemporada] = useState([]);
   const [temporadaSelecionada, setTemporadaSelecionada] = useState(episodio.season_number);
   const [menuVisivel, setMenuVisivel] = useState(false);
   const [larguraDoBotao, setLarguraDoBotao] = useState(0);
-
-  // 2. Unificamos o estado de carregamento
   const [carregando, setCarregando] = useState(true);
 
-  // Efeito para buscar todos os dados necessários (trailer e lista de episódios)
   useEffect(() => {
     const buscarDados = async () => {
-      setCarregando(true); // Inicia o carregamento
+      setCarregando(true);
       try {
-        // Busca o trailer e os episódios da temporada em paralelo
         const [chave, dados] = await Promise.all([
-          getSeriesVideos(serieId),
-          getSeasonDetails(serieId, temporadaSelecionada)
+          getCachedData(`seriesVideos-${serieId}`, () => getSeriesVideos(serieId)),
+          getCachedData(`season-${serieId}-${temporadaSelecionada}`, () => getSeasonDetails(serieId, temporadaSelecionada)),
         ]);
         setChaveDoTrailer(chave);
         setEpisodiosDaTemporada(dados);
       } catch (error) {
         console.error("Erro ao buscar dados do episódio:", error);
       } finally {
-        setCarregando(false); // Para o carregamento, independentemente do resultado
+        setCarregando(false);
       }
     };
     
     buscarDados();
-  }, [serieId, temporadaSelecionada]); // Busca novamente se a temporada ou a série mudar
+  }, [serieId, temporadaSelecionada, getCachedData]);
 
   const onStateChange = useCallback((state) => {
     if (state === 'ended') {
@@ -52,44 +51,42 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
     if (chaveDoTrailer) {
       setReproduzindo(true);
     } else {
-      // O Alert foi removido para uma experiência mais limpa, o botão já informa
+      Alert.alert("Trailer não disponível", "Não foi possível encontrar um trailer para esta série.");
     }
   };
 
-  // 3. Se estiver a carregar, exibe a nossa tela de carregamento
   if (carregando) {
     return <LoadingScreen />;
   }
 
   const urlDoBanner = episodio.still_path
     ? `https://image.tmdb.org/t/p/w780${episodio.still_path}`
-    : 'https://placehold.co/780x439/14181C/FFFFFF?text=Imagem+Indisponível';
+    : `https://placehold.co/780x439/${theme.colors.surface.substring(1)}/${theme.colors.onSurface.substring(1)}?text=Imagem+Indisponível`;
 
   return (
-    <ScrollView style={estilos.container}>
-      {/* Área do Player/Banner */}
+    // 3. A cor de fundo do ecrã agora vem do tema
+    <ScrollView style={[estilos.container, { backgroundColor: theme.colors.background }]}>
       <View style={estilos.areaDoPlayer}>
         {reproduzindo && chaveDoTrailer ? (
-          <YoutubeIframe
-            height={220}
-            play={true}
-            videoId={chaveDoTrailer}
-            onChangeState={onStateChange}
-          />
+          <YoutubeIframe height={220} play={true} videoId={chaveDoTrailer} onChangeState={onStateChange} />
         ) : (
           <Image source={{ uri: urlDoBanner }} style={estilos.banner} />
         )}
       </View>
 
       <View style={estilos.conteudo}>
-        <Text variant="headlineLarge" style={estilos.titulo}>{`${episodio.episode_number}. ${episodio.name}`}</Text>
-        <Text style={estilos.textoDeMetadados}>{`${episodio.runtime || 'N/A'} min`}</Text>
-        <Text style={estilos.descricao}>{episodio.overview || 'Descrição não disponível.'}</Text>
+        {/* 4. Os textos agora usam as cores do tema */}
+        <Text variant="headlineLarge" style={[estilos.titulo, { color: theme.colors.text }]}>{`${episodio.episode_number}. ${episodio.name}`}</Text>
+        <Text style={[estilos.textoDeMetadados, { color: theme.colors.onSurfaceVariant }]}>{`${episodio.runtime || 'N/A'} min`}</Text>
+        <Text style={[estilos.descricao, { color: theme.colors.onSurfaceVariant }]}>{episodio.overview || 'Descrição não disponível.'}</Text>
         <Button
           mode="contained"
           onPress={handlePlay}
-          disabled={reproduzindo || !chaveDoTrailer} // Desativa se estiver a tocar OU se não houver trailer
+          disabled={reproduzindo || !chaveDoTrailer}
           icon="play"
+          // MUDANÇA: Cores dinâmicas para o botão
+          buttonColor={theme.dark ? '#FFFFFF' : '#E50914'}
+          textColor={theme.dark ? '#000000' : '#FFFFFF'}
           style={estilos.botaoAssistir}
           labelStyle={estilos.textoDoBotaoAssistir}
         >
@@ -97,10 +94,10 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
         </Button>
       </View>
 
-      <Divider style={estilos.divisor} />
+      <Divider style={{ backgroundColor: theme.colors.outline }} />
 
-      {/* Lista de Episódios por Temporada */}
       <View style={estilos.secaoDeEpisodios}>
+        <Text variant="headlineSmall" style={[estilos.tituloDeRelacionados, { color: theme.colors.text }]}>Episódios</Text>
         <Menu
           visible={menuVisivel}
           onDismiss={() => setMenuVisivel(false)}
@@ -110,15 +107,15 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
               onPress={() => setMenuVisivel(true)}
               icon={menuVisivel ? 'chevron-up' : 'chevron-down'}
               mode="outlined"
-              style={estilos.botaoMenu}
+              style={[estilos.botaoMenu, { borderColor: theme.colors.outline }]}
               contentStyle={estilos.conteudoBotaoMenu}
-              labelStyle={estilos.textoBotaoMenu}
+              labelStyle={[estilos.textoBotaoMenu, { color: theme.colors.text }]}
             >
               {`Temporada ${temporadaSelecionada}`}
             </Button>
           }
           style={{ marginTop: 45, width: larguraDoBotao }}
-          contentStyle={estilos.estiloDoMenu}
+          contentStyle={[estilos.estiloDoMenu, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline }]}
         >
           <ScrollView style={{ maxHeight: 300 }}>
             {detalhesDaSerie.seasons
@@ -131,7 +128,8 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
                     setMenuVisivel(false);
                   }}
                   title={`Temporada ${season.season_number}`}
-                  titleStyle={estilos.textoDoMenuItem}
+                  style={temporadaSelecionada === season.season_number ? { backgroundColor: theme.colors.primary + '33' } : {}}
+                  titleStyle={[estilos.textoDoMenuItem, { color: theme.colors.text }]}
                 />
               ))}
           </ScrollView>
@@ -162,31 +160,29 @@ export default function EpisodioDetalheScreen({ route, navigation }) {
 }
 
 const estilos = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#14181C' },
+  container: { flex: 1 },
   areaDoPlayer: { width: '100%', height: 220, backgroundColor: '#000' },
   banner: { width: '100%', height: '100%' },
   conteudo: { padding: 14 },
-  titulo: { color: 'white', fontWeight: 'bold' },
-  textoDeMetadados: { color: '#a0a0a0', marginVertical: 10 },
-  descricao: { color: '#d0d0d0', fontSize: 15, lineHeight: 22, marginVertical: 10 },
+  titulo: { fontWeight: 'bold' },
+  textoDeMetadados: { marginVertical: 10 },
+  descricao: { fontSize: 15, lineHeight: 22, marginVertical: 10 },
   botaoAssistir: {
-    backgroundColor: '#E50914',
     borderRadius: 5,
     marginVertical: 15,
     paddingVertical: 4,
   },
   textoDoBotaoAssistir: { fontSize: 16, fontWeight: 'bold' },
-  divisor: { marginVertical: 15, backgroundColor: '#2a2a2a' },
+  divisor: { marginVertical: 15 },
   secaoDeEpisodios: { paddingHorizontal: 14, marginBottom: 30 },
+  tituloDeRelacionados: { fontWeight: 'bold', fontSize: 20, marginBottom: 16 },
   listaDeEpisodios: { marginTop: 10 },
-  botaoMenu: { borderColor: '#8A95A6' },
+  botaoMenu: {},
   conteudoBotaoMenu: { flexDirection: 'row-reverse' },
-  textoBotaoMenu: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  textoBotaoMenu: { fontSize: 16, fontWeight: 'bold' },
   estiloDoMenu: {
-    backgroundColor: '#1F262E',
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#8A95A6',
   },
-  textoDoMenuItem: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  textoDoMenuItem: { fontSize: 16, fontWeight: 'bold' },
 });

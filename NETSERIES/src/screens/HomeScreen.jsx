@@ -4,9 +4,9 @@ import {
   FlatList,
   ScrollView,
   View,
-  ActivityIndicator,
 } from "react-native";
-import { Text } from "react-native-paper";
+// 1. Importamos o useTheme do react-native-paper
+import { Text, useTheme } from "react-native-paper";
 import {
   getPopularMovies,
   getPopularSeries,
@@ -16,10 +16,9 @@ import {
 } from "../connection/movieService";
 import MovieCard from "../components/MovieCard";
 import CarrosselPersonalizado from "../components/CustomCarousel";
-import DestaquePrincipal from "../components/DestaquePrincipal"; // 1. Importa o novo componente
+import DestaquePrincipal from "../components/DestaquePrincipal";
 import { useCache } from "../contexts/CacheContext";
-import LoadingScreen from "../components/LoadingScreen"; // 1. Importa a nova tela
-
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function TelaDeInicio({ navigation }) {
   const [filmesEmDestaque, setFilmesEmDestaque] = useState([]);
@@ -28,10 +27,11 @@ export default function TelaDeInicio({ navigation }) {
   const [seriesNoAr, setSeriesNoAr] = useState([]);
   const [emAlta, setEmAlta] = useState([]);
   const { getCachedData } = useCache();
+  const theme = useTheme(); // 2. Pega o objeto do tema atual
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    const buscarDados = async () => {
+    async function buscarDados() {
       setCarregando(true);
       const [destaques, populares, sPopulares, alta, noAr] = await Promise.all([
         getCachedData('nowPlayingMovies', getNowPlayingMovies),
@@ -47,7 +47,7 @@ export default function TelaDeInicio({ navigation }) {
       setSeriesNoAr(noAr);
       setEmAlta(alta);
       setCarregando(false);
-    };
+    }
     buscarDados();
   }, [getCachedData]);
 
@@ -62,7 +62,10 @@ export default function TelaDeInicio({ navigation }) {
 
   const renderizarSecao = (titulo, dados, tipoDeMidia = null, alinhamento = 'left') => (
     <View style={estilos.secao}>
-      <Text style={[estilos.tituloDaSecao, { textAlign: alinhamento }]}>{titulo}</Text>
+      {/* O título da seção agora pega a cor do tema */}
+      <Text style={[estilos.tituloDaSecao, { textAlign: alinhamento, color: theme.colors.text }]}>
+        {titulo}
+      </Text>
       <FlatList
         data={dados}
         horizontal
@@ -79,20 +82,17 @@ export default function TelaDeInicio({ navigation }) {
     </View>
   );
 
-  // 2. MUDANÇA: Se estiver a carregar, exibe a nossa nova tela
   if (carregando) {
     return <LoadingScreen />;
   }
 
-
   return (
-    <ScrollView style={estilos.container}>
-      {/* 2. Substituímos o carrossel antigo pelo novo componente de destaque */}
+    // 3. A cor de fundo da ScrollView agora vem do tema
+    <ScrollView style={[estilos.container, { backgroundColor: theme.colors.background }]}>
       <DestaquePrincipal dados={filmesEmDestaque} navigation={navigation} />
 
-      {/* Seção do carrossel de séries */}
       <View style={estilos.secaoDeCarrossel}>
-        <Text style={[estilos.tituloDaSecao, { paddingHorizontal: 14, textAlign: 'right' }]}>
+        <Text style={[estilos.tituloDaSecao, { paddingHorizontal: 14, textAlign: 'right', color: theme.colors.text }]}>
           Séries Novas no Ar
         </Text>
         <CarrosselPersonalizado
@@ -101,23 +101,19 @@ export default function TelaDeInicio({ navigation }) {
         />
       </View>
       
-      {/* Seções com listas de cards */}
       <View style={estilos.conteudo}>
         {renderizarSecao("Filmes Populares", filmesPopulares, "movie")}
-{renderizarSecao("Séries Populares", seriesPopulares, "tv", 'right')}
-        {renderizarSecao("Em Alta", emAlta, null)}
+        {renderizarSecao("Séries Populares", seriesPopulares, "tv", 'right')}
+        {renderizarSecao("Em Alta", emAlta, null, 'left')}
       </View>
     </ScrollView>
   );
 }
 
 const estilos = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#14181C" },
-  carregador: {
+  container: { 
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#14181C",
+    // Cor de fundo removida daqui
   },
   conteudo: { paddingHorizontal: 14, paddingBottom: 20 },
   secaoDeCarrossel: { 
@@ -127,7 +123,7 @@ const estilos = StyleSheet.create({
     marginTop: 24 
   },
   tituloDaSecao: { 
-    color: "#FFFFFF", 
+    // Cor removida daqui
     fontWeight: "bold", 
     marginBottom: 16,
     fontSize: 20,

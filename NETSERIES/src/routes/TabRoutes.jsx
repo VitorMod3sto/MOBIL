@@ -4,6 +4,7 @@ import HomeStackRoutes from './HomeStackRoutes';
 import FilmesStackRoutes from './FilmesStackRoutes';
 import SeriesStackRoutes from './SeriesStackRoutes';
 import ConfigScreen from '../screens/ConfigScreen';
+import ConfigStackRoutes from './ConfigStackRoutes';
 
 const Tab = createBottomTabNavigator();
 
@@ -43,7 +44,7 @@ export default function TabRoutes() {
       />
       <Tab.Screen 
         name="Configurações" 
-        component={ConfigScreen} 
+        component={ConfigStackRoutes} 
         options={{
           tabBarLabel: 'Ajustes',
           tabBarIcon: ({ color, size }) => (<Ionicons name="settings-outline" color={color} size={size} />)

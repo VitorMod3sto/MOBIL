@@ -7,24 +7,27 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from "react-native";
-import { Text, Chip } from "react-native-paper";
+import { Text, Chip, useTheme } from "react-native-paper";
 
-const { width: larguraDaTela } = Dimensions.get("window");
-
-// Componente para renderizar cada slide do carrossel
-const ItemDoCarrossel = ({ item, aoClicarNoItem }) => {
+const ItemDoCarrossel = ({ item, aoClicarNoItem, larguraDoItem }) => {
   const urlDaImagem = `https://image.tmdb.org/t/p/w780${item.backdrop_path}`;
+  const theme = useTheme();
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      style={estilos.containerDoItem}
-      // Chama a função recebida da tela principal, passando o item atual
+      style={[estilos.containerDoItem, { width: larguraDoItem }]}
       onPress={() => aoClicarNoItem(item)}
     >
-      <ImageBackground source={{ uri: urlDaImagem }} style={estilos.banner}>
+      <ImageBackground source={{ uri: urlDaImagem }} style={[estilos.banner, { backgroundColor: theme.colors.surface }]}>
         <View style={estilos.sobreposicao}>
-          <Text style={estilos.titulo} variant="headlineLarge">{item.title || item.name}</Text>
-          <Chip icon="star" style={estilos.etiqueta} textStyle={estilos.textoDaEtiqueta}>
+          {/* MUDANÇA: A cor do título agora é sempre branca */}
+          <Text style={[estilos.titulo, { color: '#FFFFFF' }]} variant="headlineLarge">{item.title || item.name}</Text>
+          <Chip
+            icon="star"
+            style={estilos.etiqueta}
+            textStyle={estilos.textoDaEtiqueta}
+          >
             {item.vote_average.toFixed(1)}
           </Chip>
         </View>
@@ -33,14 +36,14 @@ const ItemDoCarrossel = ({ item, aoClicarNoItem }) => {
   );
 };
 
-// Componente principal do Carrossel
 export default function CarrosselPersonalizado({ dados, aoClicarNoItem }) {
   const [indiceAtivo, setIndiceAtivo] = useState(0);
   const referenciaFlatList = useRef(null);
+  const theme = useTheme();
+  const [larguraContainer, setLarguraContainer] = useState(0);
 
-  // Efeito para o auto-play
   useEffect(() => {
-    if (!dados || dados.length === 0) return;
+    if (!dados || dados.length === 0 || larguraContainer === 0) return;
 
     const intervalo = setInterval(() => {
       const proximoIndice = (indiceAtivo + 1) % dados.length;
@@ -49,12 +52,11 @@ export default function CarrosselPersonalizado({ dados, aoClicarNoItem }) {
         animated: true,
       });
       setIndiceAtivo(proximoIndice);
-    }, 5000); // Muda a cada 5 segundos
+    }, 5000);
 
     return () => clearInterval(intervalo);
-  }, [indiceAtivo, dados]);
+  }, [indiceAtivo, dados, larguraContainer]);
 
-  // Função para atualizar o índice ativo ao rolar manualmente
   const aoRolar = (evento) => {
     const tamanhoDoSlide = evento.nativeEvent.layoutMeasurement.width;
     const indice = Math.round(
@@ -62,49 +64,59 @@ export default function CarrosselPersonalizado({ dados, aoClicarNoItem }) {
     );
     setIndiceAtivo(indice);
   };
+  
+  const getItemLayout = (data, index) => ({
+    length: larguraContainer,
+    offset: larguraContainer * index,
+    index,
+  });
 
   if (!dados || dados.length === 0) {
     return null;
   }
 
   return (
-    <View style={estilos.container}>
+    <View 
+      style={estilos.container}
+      onLayout={(event) => {
+        setLarguraContainer(event.nativeEvent.layout.width);
+      }}
+    >
       <FlatList
         ref={referenciaFlatList}
         data={dados}
         renderItem={({ item }) => (
-          <ItemDoCarrossel item={item} aoClicarNoItem={aoClicarNoItem} />
+          <ItemDoCarrossel item={item} aoClicarNoItem={aoClicarNoItem} larguraDoItem={larguraContainer} />
         )}
         keyExtractor={(item) => item.id.toString()}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={aoRolar}
+        getItemLayout={getItemLayout}
         style={estilos.carrossel}
       />
-      {/* Indicadores de Paginação (pontinhos) */}
       <View style={estilos.containerDaPaginacao}>
-        {dados.map((_, indice) => (
-          <View
-            key={indice}
-            style={[
-              estilos.estiloDoPonto,
-              {
-                backgroundColor:
-                  indice === indiceAtivo ? "white" : "rgba(255, 255, 255, 0.4)",
-              },
-            ]}
-          />
-        ))}
-      </View>
+  {dados.map((_, indice) => (
+    <View
+      key={indice}
+      style={[
+        estilos.estiloDoPonto,
+        {
+          backgroundColor: indice === indiceAtivo ? '#FF0000' : '#CCCCCC',
+        },
+      ]}
+    />
+  ))}
+</View>
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
-  container: { marginBottom: 16, height: 250 },
+  container: { height: 250, width: '100%' },
   carrossel: { flex: 1 },
-  containerDoItem: { width: larguraDaTela, height: 250 },
+  containerDoItem: { height: 250 },
   banner: { flex: 1, justifyContent: "flex-end" },
   sobreposicao: {
     ...StyleSheet.absoluteFillObject,
@@ -113,7 +125,6 @@ const estilos = StyleSheet.create({
     padding: 16,
   },
   titulo: {
-    color: "white",
     fontWeight: "bold",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: -1, height: 1 },

@@ -1,25 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ActivityIndicator, FlatList } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { getMoviesByGenre } from '../connection/movieService';
-import GridMovieCard from '../components/GridMovieCard'; // <-- 1. Importa o novo card
+import GridMovieCard from '../components/GridMovieCard'; 
 import CarrosselPersonalizado from '../components/CustomCarousel';
-import { useCache } from '../contexts/CacheContext'; // 1. Importa o hook
-import LoadingScreen from '../components/LoadingScreen'; // 1. Importa a tela
-
+import { useCache } from '../contexts/CacheContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function GenreDetailScreen({ route, navigation }) {
   const genreId = route.params?.genreId;
+  const { getCachedData } = useCache();
+  const theme = useTheme(); 
 
   const [filmesDoGenero, setFilmesDoGenero] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const { getCachedData } = useCache();
 
   useEffect(() => {
     if (genreId) {
       const buscarDados = async () => {
         setCarregando(true);
-        // 3. Busca os filmes do género usando o cache
         const resultados = await getCachedData(`genre-${genreId}`, () => getMoviesByGenre(genreId));
         setFilmesDoGenero(resultados);
         setCarregando(false);
@@ -34,35 +33,31 @@ export default function GenreDetailScreen({ route, navigation }) {
     navigation.navigate("FilmeDetalhe", { itemId: item.id });
   };
 
- // 2. MUDANÇA: Usa a nova tela de carregamento
-   if (carregando) {
-     return <LoadingScreen />;
-   }
+  if (carregando) {
+    return <LoadingScreen />;
+  }
 
   const filmesEmDestaque = filmesDoGenero.slice(0, 5);
 
   return (
     <FlatList
-      style={estilos.container}
+      style={[estilos.container, { backgroundColor: theme.colors.background }]}
       data={filmesDoGenero}
       numColumns={3}
       keyExtractor={(item) => item.id.toString()}
-      // 2. Usamos contentContainerStyle para o espaçamento geral da grelha
       contentContainerStyle={estilos.grelhaContainer}
       ListHeaderComponent={
-        <>
+        <View style={estilos.headerContainer}>
           <CarrosselPersonalizado
             dados={filmesEmDestaque}
             aoClicarNoItem={(item) => navigation.navigate("FilmeDetalhe", { itemId: item.id })}
           />
-          <Text style={estilos.tituloDaSecao}>Todos os Filmes</Text>
-        </>
+          <Text style={[estilos.tituloDaSecao, { color: theme.colors.text }]}>Todos os Filmes</Text>
+        </View>
       }
       renderItem={({ item }) => (
-        // 3. Envolvemos o card numa View para aplicar o espaçamento
         <View style={estilos.itemDaGrelha}>
           <GridMovieCard
-            title={item.title}
             posterPath={item.poster_path}
             onPress={() => aoClicarNoCard(item)}
           />
@@ -76,24 +71,20 @@ export default function GenreDetailScreen({ route, navigation }) {
 const estilos = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: "#14181C",
   },
-  carregador: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#14181C",
+  grelhaContainer: {
+    paddingHorizontal: 10,
+    paddingTop: 10,
+  },
+  headerContainer: {
+    marginHorizontal: -10, // Anula o padding para o carrossel ocupar a tela toda
+    marginBottom: 10,
   },
   tituloDaSecao: { 
-    color: "#FFFFFF", 
     fontWeight: "bold", 
     marginVertical: 16,
     fontSize: 20,
     paddingHorizontal: 14,
-  },
-  // 4. Novos estilos para a grelha funcionar corretamente
-  grelhaContainer: {
-    paddingHorizontal: 5,
   },
   itemDaGrelha: {
     flex: 1,
