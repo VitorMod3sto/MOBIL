@@ -5,11 +5,14 @@ import CustomDrawerContent from '../components/CustomDrawerContent';
 
 // Telas de exemplo
 import { View, Text, StyleSheet } from 'react-native';
+import UserStackRoutes from './UserStackRoutes';
+
 const ContaScreen = () => (
   <View style={styles.container}>
     <Text style={styles.text}>Tela da Conta</Text>
   </View>
 );
+
 const FavoritosScreen = () => (
   <View style={styles.container}>
     <Text style={styles.text}>Tela de Favoritos</Text>
@@ -29,11 +32,22 @@ export default function DrawerRoutes() {
       <Drawer.Screen name="InícioApp" component={TabRoutes} />
       <Drawer.Screen name="Conta" component={ContaScreen} />
       <Drawer.Screen name="Favoritos" component={FavoritosScreen} />
+
+      {/* 2. Regista a nova pilha de utilizadores no navegador */}
+            <Drawer.Screen name="Usuarios" component={UserStackRoutes} />
     </Drawer.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#14181C' },
-  text: { color: '#fff', fontSize: 20 },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#14181C',
+  },
+  text: {
+    color: '#fff',
+    fontSize: 20,
+  },
 });

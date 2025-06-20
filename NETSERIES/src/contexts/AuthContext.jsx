@@ -8,13 +8,32 @@ export const AuthProvider = ({ children }) => {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    const carregarUsuario = async () => {
-      const dados = await AsyncStorage.getItem('@usuarioLogado');
-      if (dados) setUsuario(JSON.parse(dados));
-      setCarregando(false);
-    };
-    carregarUsuario();
-  }, []);
+  const carregarUsuario = async () => {
+    const usuarioLogado = await AsyncStorage.getItem('@usuarioLogado');
+    if (usuarioLogado) setUsuario(JSON.parse(usuarioLogado));
+
+    // Cria o admin se não existir
+    const usuarios = await AsyncStorage.getItem('@usuarios');
+    let lista = usuarios ? JSON.parse(usuarios) : [];
+
+    const jaTemAdmin = lista.some(u => u.email === 'admin');
+    if (!jaTemAdmin) {
+      const admin = {
+        id: new Date().getTime(),
+        nome: 'Administrador',
+        email: 'admin',
+        senha: 'admin',
+        telefone: '',
+        dataNascimento: '',
+      };
+      lista.push(admin);
+      await AsyncStorage.setItem('@usuarios', JSON.stringify(lista));
+    }
+
+    setCarregando(false);
+  };
+  carregarUsuario();
+}, []);
 
   const login = async (email, senha) => {
     const usuariosSalvos = await AsyncStorage.getItem('@usuarios');

@@ -48,10 +48,6 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Main' }],
-    });
   };
 
   return (

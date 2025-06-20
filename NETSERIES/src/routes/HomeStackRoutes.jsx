@@ -46,6 +46,7 @@ export default function HomeStackRoutes() {
         component={SearchScreen}
         options={{ title: "Buscar" }}
       />
+      
     </Stack.Navigator>
   );
 }

@@ -91,6 +91,23 @@ export default function CustomDrawerContent(props) {
             />
           </Drawer.Section>
 
+          {/* Se admin, mostra o menu "Ver usuários" */}
+          {usuario?.email === 'admin' && (
+            <>
+              <Divider style={{ backgroundColor: theme.colors.outline }} />
+              <Drawer.Section>
+                <DrawerItem
+    icon={({ color, size }) => (
+        <Ionicons name="people-outline" color={theme.colors.text} size={size} />
+    )}
+    label="Usuários"
+    labelStyle={{ color: theme.colors.text }}
+    onPress={() => { props.navigation.navigate('Usuarios') }}
+/>
+              </Drawer.Section>
+            </>
+          )}
+
           <Divider style={{ backgroundColor: theme.colors.outline, marginVertical: 10 }} />
 
           {/* 🚪 Botão de Logout */}
