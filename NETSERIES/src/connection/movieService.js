@@ -267,3 +267,23 @@ export const getSeriesByGenre = async (genreId) => {
     return [];
   }
 };
+
+export async function searchMulti(query) {
+  if (!query || query.trim() === '') {
+    return [];
+  }
+
+  try {
+    const response = await api.get('/search/multi', {
+      params: {
+        query,
+        language: 'pt-BR',
+        include_adult: false,
+      },
+    });
+    return response.data.results;
+  } catch (error) {
+    console.error('Erro na busca multi:', error);
+    return [];
+  }
+}

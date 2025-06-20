@@ -1,35 +1,36 @@
 import React from 'react';
-import { Appbar } from 'react-native-paper';
+// 1. Importamos o hook 'useTheme'
+import { Appbar, useTheme } from 'react-native-paper';
 import { getHeaderTitle } from '@react-navigation/elements';
 
-// O componente agora também recebe a prop 'back' do navegador
 export default function BarraDeNavegacaoPersonalizada({ navigation, route, options, back }) {
   const titulo = getHeaderTitle(options, route.name);
+  const theme = useTheme(); // 2. Pega o objeto do tema atual
 
   return (
-    <Appbar.Header style={{ backgroundColor: '#1F262E' }}>
-      {/* MUDANÇA: Lógica condicional para exibir o botão de Voltar ou o de Menu */}
+    // 3. O fundo do cabeçalho agora usa a cor 'surface' do tema
+    <Appbar.Header style={{ backgroundColor: theme.colors.surface }} elevated>
       {back ? (
-        // Se a propriedade 'back' existir (ou seja, se for uma tela interna da pilha), exibe o botão de voltar.
-        <Appbar.BackAction color="#fff" onPress={navigation.goBack} />
+        // O ícone e o texto agora usarão a cor principal do tema
+        <Appbar.BackAction color={theme.colors.text} onPress={navigation.goBack} />
       ) : (
-        // Se não, exibe o ícone de menu para abrir a gaveta.
         <Appbar.Action
           icon="menu"
-          color="#fff"
+          color={theme.colors.text}
           onPress={() => navigation.openDrawer()}
         />
       )}
       
-      <Appbar.Content title={titulo} titleStyle={{ color: '#fff', fontWeight: 'bold' }} />
+      <Appbar.Content title={titulo} titleStyle={{ color: theme.colors.text, fontWeight: 'bold' }} />
       
       <Appbar.Action
-        icon="magnify"
-        color="#fff"
-        onPress={() => {
-          console.log('Clicou em Pesquisar!');
-        }}
-      />
+  icon="magnify"
+  color={theme.colors.text}
+  onPress={() => {
+    navigation.navigate('Search');  // Navega para a tela Search
+  }}
+/>
+
     </Appbar.Header>
   );
 }

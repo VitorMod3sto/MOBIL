@@ -1,12 +1,13 @@
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 // Importa todas as telas da pilha e a barra de navegação
-import TelaDeInicio from '../screens/HomeScreen';
-import FilmeDetalheScreen from '../screens/FilmeDetalheScreen';
-import SerieDetalheScreen from '../screens/SerieDetalheScreen';
-import EpisodioDetalheScreen from '../screens/EpisodioDetalheScreen';
-import BarraDeNavegacaoPersonalizada from '../components/CustomAppBar';
+import TelaDeInicio from "../screens/HomeScreen";
+import FilmeDetalheScreen from "../screens/FilmeDetalheScreen";
+import SerieDetalheScreen from "../screens/SerieDetalheScreen";
+import EpisodioDetalheScreen from "../screens/EpisodioDetalheScreen";
+import BarraDeNavegacaoPersonalizada from "../components/CustomAppBar";
+import SearchScreen from "../screens/SearchScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -19,26 +20,31 @@ export default function HomeStackRoutes() {
       }}
     >
       {/* Definimos o título para cada tela, que será usado pela Appbar */}
-      <Stack.Screen 
-        name="HomePrincipal" 
+      <Stack.Screen
+        name="HomePrincipal"
         component={TelaDeInicio}
-        options={{ title: 'Início' }} 
+        options={{ title: "Início" }}
       />
-      <Stack.Screen 
-        name="FilmeDetalhe" 
+      <Stack.Screen
+        name="FilmeDetalhe"
         component={FilmeDetalheScreen}
-        options={{ title: 'Detalhes do Filme' }}
+        options={{ title: "Detalhes do Filme" }}
       />
-      <Stack.Screen 
-        name="SerieDetalhe" 
+      <Stack.Screen
+        name="SerieDetalhe"
         component={SerieDetalheScreen}
-        options={{ title: 'Detalhes da Série' }}
+        options={{ title: "Detalhes da Série" }}
       />
       {/* CORREÇÃO: Registramos a tela de detalhes do episódio aqui */}
-       <Stack.Screen 
-        name="EpisodioDetalhe" 
+      <Stack.Screen
+        name="EpisodioDetalhe"
         component={EpisodioDetalheScreen}
-        options={{ title: 'Detalhes do Episódio' }}
+        options={{ title: "Detalhes do Episódio" }}
+      />
+      <Stack.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{ title: "Buscar" }}
       />
     </Stack.Navigator>
   );
