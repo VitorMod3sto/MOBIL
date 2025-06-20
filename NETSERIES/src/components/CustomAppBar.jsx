@@ -26,12 +26,13 @@ export default function BarraDeNavegacaoPersonalizada({ navigation, route, optio
        {/* MUDANÇA: O ícone de busca só é renderizado se 'options.showSearch' não for 'false' */}
       {options.showSearch !== false && (
         <Appbar.Action
-          icon="magnify"
-          color={theme.colors.text}
-          onPress={() => {
-            console.log('Clicou em Pesquisar!');
-          }}
-        />
+           icon="magnify"
+  color={theme.colors.text}
+  onPress={() => {
+    navigation.navigate('Search');  // Navega para a tela Search
+  }}
+/>
+
       )}
 
     </Appbar.Header>
