@@ -2,6 +2,9 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import TabRoutes from './TabRoutes';
 import CustomDrawerContent from '../components/CustomDrawerContent';
+// 1. Importe a nova pilha de rotas da Conta
+import ContaStackRoutes from './ContaStackRoutes'; 
+
 
 // Telas de exemplo
 import { View, Text, StyleSheet } from 'react-native';
@@ -30,7 +33,7 @@ export default function DrawerRoutes() {
       }}
     >
       <Drawer.Screen name="InícioApp" component={TabRoutes} />
-      <Drawer.Screen name="Conta" component={ContaScreen} />
+      <Drawer.Screen name="Conta" component={ContaStackRoutes} />
       <Drawer.Screen name="Favoritos" component={FavoritosScreen} />
 
       {/* 2. Regista a nova pilha de utilizadores no navegador */}

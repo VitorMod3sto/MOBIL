@@ -15,13 +15,26 @@ export default function CustomDrawerContent(props) {
         <View style={styles.drawerContent}>
           {/* Seção com informações do usuário */}
           <View style={styles.userInfoSection}>
-            <View style={{ flexDirection: 'row', marginTop: 15 }}>
-              <Avatar.Image
-                source={{
-                  uri: 'https://placehold.co/50x50/E50914/FFFFFF?text=U'
-                }}
-                size={50}
-              />
+            <View style={{ flexDirection: 'row', marginTop: 15, alignItems: 'center' }}>
+              
+              {/* --- INÍCIO DA MUDANÇA --- */}
+              {/* Verifica se existe uma fotoUri no objeto do usuário */}
+              {usuario?.fotoUri ? (
+                // Se existir, mostra a imagem que o usuário selecionou
+                <Avatar.Image
+                  source={{ uri: usuario.fotoUri }}
+                  size={50}
+                />
+              ) : (
+                // Se não existir, mostra um avatar com a inicial do nome do usuário
+                <Avatar.Text
+                  label={usuario?.nome ? usuario.nome[0].toUpperCase() : 'U'}
+                  size={50}
+                  style={{ backgroundColor: theme.colors.primary }} // Usa a cor primária do tema para o fundo
+                />
+              )}
+              {/* --- FIM DA MUDANÇA --- */}
+
               <View style={{ marginLeft: 15, flexDirection: 'column' }}>
                 <Title style={[styles.title, { color: theme.colors.text }]}>
                   {usuario?.nome || 'Usuário'}
@@ -97,13 +110,13 @@ export default function CustomDrawerContent(props) {
               <Divider style={{ backgroundColor: theme.colors.outline }} />
               <Drawer.Section>
                 <DrawerItem
-    icon={({ color, size }) => (
-        <Ionicons name="people-outline" color={theme.colors.text} size={size} />
-    )}
-    label="Usuários"
-    labelStyle={{ color: theme.colors.text }}
-    onPress={() => { props.navigation.navigate('Usuarios') }}
-/>
+                  icon={({ color, size }) => (
+                    <Ionicons name="people-outline" color={theme.colors.text} size={size} />
+                  )}
+                  label="Usuários"
+                  labelStyle={{ color: theme.colors.text }}
+                  onPress={() => { props.navigation.navigate('Usuarios') }}
+                />
               </Drawer.Section>
             </>
           )}
