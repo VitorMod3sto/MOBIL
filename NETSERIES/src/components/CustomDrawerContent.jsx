@@ -3,14 +3,17 @@ import { View, StyleSheet } from 'react-native';
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import { Avatar, Title, Caption, Drawer, Divider, Text, useTheme } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function CustomDrawerContent(props) {
-  const theme = useTheme(); 
+  const theme = useTheme();
+  const { usuario, logout } = useAuth();
+
   return (
-     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <DrawerContentScrollView {...props}>
         <View style={styles.drawerContent}>
-          {/* Seção com informações do usuário (Opcional) */}
+          {/* Seção com informações do usuário */}
           <View style={styles.userInfoSection}>
             <View style={{ flexDirection: 'row', marginTop: 15 }}>
               <Avatar.Image
@@ -20,22 +23,25 @@ export default function CustomDrawerContent(props) {
                 size={50}
               />
               <View style={{ marginLeft: 15, flexDirection: 'column' }}>
-                {/* 4. Os textos agora usam as cores do tema */}
-                <Title style={[styles.title, { color: theme.colors.text }]}>Usuário</Title>
-                <Caption style={[styles.caption, { color: theme.colors.onSurfaceVariant }]}>@usuario_teste</Caption>
+                <Title style={[styles.title, { color: theme.colors.text }]}>
+                  {usuario?.nome || 'Usuário'}
+                </Title>
+                <Caption style={[styles.caption, { color: theme.colors.onSurfaceVariant }]}>
+                  @{usuario?.email || 'email'}
+                </Caption>
               </View>
             </View>
           </View>
 
-          {/* Seção com os itens de navegação das abas */}
-           <Drawer.Section style={styles.drawerSection}>
+          {/* Itens de navegação */}
+          <Drawer.Section style={styles.drawerSection}>
             <DrawerItem
               icon={({ color, size }) => (
                 <Ionicons name="home-outline" color={theme.colors.text} size={size} />
               )}
               label="Início"
               labelStyle={{ color: theme.colors.text }}
-              onPress={() => { props.navigation.navigate('InícioApp', { screen: 'Home' }) }}
+              onPress={() => props.navigation.navigate('InícioApp', { screen: 'Home' })}
             />
             <DrawerItem
               icon={({ color, size }) => (
@@ -43,7 +49,7 @@ export default function CustomDrawerContent(props) {
               )}
               label="Filmes"
               labelStyle={{ color: theme.colors.text }}
-              onPress={() => { props.navigation.navigate('InícioApp', { screen: 'Filmes' }) }}
+              onPress={() => props.navigation.navigate('InícioApp', { screen: 'Filmes' })}
             />
             <DrawerItem
               icon={({ color, size }) => (
@@ -51,7 +57,7 @@ export default function CustomDrawerContent(props) {
               )}
               label="Séries"
               labelStyle={{ color: theme.colors.text }}
-              onPress={() => { props.navigation.navigate('InícioApp', { screen: 'Séries' }) }}
+              onPress={() => props.navigation.navigate('InícioApp', { screen: 'Séries' })}
             />
             <DrawerItem
               icon={({ color, size }) => (
@@ -59,33 +65,45 @@ export default function CustomDrawerContent(props) {
               )}
               label="Ajustes"
               labelStyle={{ color: theme.colors.text }}
-              onPress={() => { props.navigation.navigate('InícioApp', { screen: 'Configurações' }) }}
+              onPress={() => props.navigation.navigate('InícioApp', { screen: 'Configurações' })}
             />
           </Drawer.Section>
-          
-          {/* Linha separadora */}
-           <Divider style={{ backgroundColor: theme.colors.outline }} />
 
-          {/* Seção com os novos itens */}
+          <Divider style={{ backgroundColor: theme.colors.outline }} />
+
+          {/* Extras */}
           <Drawer.Section>
-  <DrawerItem
-    icon={({ size }) => (
-      <Ionicons name="person-outline" color={theme.colors.text} size={size} />
-    )}
-    label="Conta"
-    labelStyle={{ color: theme.colors.text }}
-    onPress={() => { props.navigation.navigate('Conta') }}
-  />
-  <DrawerItem
-    icon={({ size }) => (
-      <Ionicons name="heart-outline" color={theme.colors.text} size={size} />
-    )}
-    label="Favoritos"
-    labelStyle={{ color: theme.colors.text }}
-    onPress={() => { props.navigation.navigate('Favoritos') }}
-  />
-</Drawer.Section>
+            <DrawerItem
+              icon={({ size }) => (
+                <Ionicons name="person-outline" color={theme.colors.text} size={size} />
+              )}
+              label="Conta"
+              labelStyle={{ color: theme.colors.text }}
+              onPress={() => props.navigation.navigate('Conta')}
+            />
+            <DrawerItem
+              icon={({ size }) => (
+                <Ionicons name="heart-outline" color={theme.colors.text} size={size} />
+              )}
+              label="Favoritos"
+              labelStyle={{ color: theme.colors.text }}
+              onPress={() => props.navigation.navigate('Favoritos')}
+            />
+          </Drawer.Section>
 
+          <Divider style={{ backgroundColor: theme.colors.outline, marginVertical: 10 }} />
+
+          {/* 🚪 Botão de Logout */}
+          <Drawer.Section>
+            <DrawerItem
+              icon={({ size }) => (
+                <Ionicons name="log-out-outline" color={theme.colors.text} size={size} />
+              )}
+              label="Sair"
+              labelStyle={{ color: theme.colors.text }}
+              onPress={logout}
+            />
+          </Drawer.Section>
         </View>
       </DrawerContentScrollView>
     </View>
@@ -104,19 +122,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 3,
     fontWeight: 'bold',
-    color: '#fff',
   },
   caption: {
     fontSize: 14,
     lineHeight: 14,
-    color: '#a0a0a0',
   },
   drawerSection: {
     marginTop: 5,
-  },
-  divider: {
-    marginHorizontal: 20,
-    marginVertical: 15,
-    backgroundColor: '#3a3a3a'
   }
 });

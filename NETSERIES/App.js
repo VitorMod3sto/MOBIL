@@ -1,11 +1,14 @@
 import 'react-native-gesture-handler';
 import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationDefaultTheme } from '@react-navigation/native';
 import { PaperProvider, MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
-import DrawerRoutes from './src/routes/DrawerRoutes';
-import { SettingsProvider, useSettings } from './src/contexts/SettingsContext';
+import { useSettings, SettingsProvider } from './src/contexts/SettingsContext';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { CacheProvider } from './src/contexts/CacheContext';
+import DrawerRoutes from './src/routes/DrawerRoutes';
+import AuthNavigator from './src/routes/AuthNavigator';
+import { ActivityIndicator, View } from 'react-native';
 
-// CORREÇÃO: Temas combinados de forma segura para preservar todas as propriedades
+// Temas combinados
 const CombinedDefaultTheme = {
   ...NavigationDefaultTheme,
   ...MD3LightTheme,
@@ -32,30 +35,41 @@ const CombinedDarkTheme = {
   },
 };
 
+// Tela de carregamento inicial
+function LoadingScreen() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" />
+    </View>
+  );
+}
 
-// Componente que lida com o tema
-const AppContent = () => {
+// Conteúdo do App com base no login
+function AppContent() {
   const { isDarkMode } = useSettings();
-  
+  const { usuario, carregando } = useAuth();
+
   const theme = isDarkMode ? CombinedDarkTheme : CombinedDefaultTheme;
 
+  if (carregando) return <LoadingScreen />;
+
   return (
-    // Passamos o mesmo tema combinado para ambos os provedores
     <PaperProvider theme={theme}>
       <NavigationContainer theme={theme}>
-        <DrawerRoutes />
+        {usuario ? <DrawerRoutes /> : <AuthNavigator />}
       </NavigationContainer>
     </PaperProvider>
   );
-};
-
+}
 
 export default function App() {
   return (
     <SettingsProvider>
-      <CacheProvider>
-        <AppContent />
-      </CacheProvider>
+      <AuthProvider>
+        <CacheProvider>
+          <AppContent />
+        </CacheProvider>
+      </AuthProvider>
     </SettingsProvider>
   );
 }
