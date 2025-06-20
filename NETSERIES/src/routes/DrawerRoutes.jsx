@@ -4,6 +4,7 @@ import TabRoutes from './TabRoutes';
 import CustomDrawerContent from '../components/CustomDrawerContent';
 // 1. Importe a nova pilha de rotas da Conta
 import ContaStackRoutes from './ContaStackRoutes'; 
+import FavoritosStackRoutes from '../routes/FavoritosStackRoutes'
 
 
 // Telas de exemplo
@@ -34,8 +35,7 @@ export default function DrawerRoutes() {
     >
       <Drawer.Screen name="InícioApp" component={TabRoutes} />
       <Drawer.Screen name="Conta" component={ContaStackRoutes} />
-      <Drawer.Screen name="Favoritos" component={FavoritosScreen} />
-
+ <Drawer.Screen name="Favoritos" component={FavoritosStackRoutes} />
       {/* 2. Regista a nova pilha de utilizadores no navegador */}
             <Drawer.Screen name="Usuarios" component={UserStackRoutes} />
     </Drawer.Navigator>

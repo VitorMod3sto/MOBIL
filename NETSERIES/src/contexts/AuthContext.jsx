@@ -7,15 +7,12 @@ export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
   
-  // Função para carregar o usuário logado e criar o 'admin' na inicialização
   useEffect(() => {
     const carregarUsuario = async () => {
       const usuarioLogado = await AsyncStorage.getItem('@usuarioLogado');
       if (usuarioLogado) setUsuario(JSON.parse(usuarioLogado));
-
       const usuarios = await AsyncStorage.getItem('@usuarios');
       let lista = usuarios ? JSON.parse(usuarios) : [];
-
       const jaTemAdmin = lista.some(u => u.email === 'admin');
       if (!jaTemAdmin) {
         const admin = {
@@ -25,23 +22,21 @@ export const AuthProvider = ({ children }) => {
           senha: 'admin',
           telefone: '',
           dataNascimento: '',
+          favoritos: [],
         };
         lista.push(admin);
         await AsyncStorage.setItem('@usuarios', JSON.stringify(lista));
       }
-
       setCarregando(false);
     };
     carregarUsuario();
   }, []);
 
-  // Função para registrar um novo usuário
   const registrar = async (novoUsuario) => {
     const usuariosSalvos = await AsyncStorage.getItem('@usuarios');
     const lista = usuariosSalvos ? JSON.parse(usuariosSalvos) : [];
-
     if (lista.find(u => u.email === novoUsuario.email)) return false;
-
+    novoUsuario.favoritos = [];
     novoUsuario.id = new Date().getTime();
     lista.push(novoUsuario);
     await AsyncStorage.setItem('@usuarios', JSON.stringify(lista));
@@ -50,12 +45,17 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-  // Função para fazer o login de um usuário existente
   const login = async (email, senha) => {
     const usuariosSalvos = await AsyncStorage.getItem('@usuarios');
     const lista = usuariosSalvos ? JSON.parse(usuariosSalvos) : [];
     const achado = lista.find(u => u.email === email && u.senha === senha);
     if (achado) {
+      if (!achado.favoritos) {
+        achado.favoritos = [];
+        // --- LINHA CRÍTICA ADICIONADA ---
+        // Salva a atualização (a lista de favoritos vazia) no AsyncStorage
+        await atualizarUsuario(achado); 
+      }
       setUsuario(achado);
       await AsyncStorage.setItem('@usuarioLogado', JSON.stringify(achado));
       return true;
@@ -63,34 +63,22 @@ export const AuthProvider = ({ children }) => {
     return false;
   };
 
-  // Função para atualizar os dados de um usuário (incluindo o e-mail)
   const atualizarUsuario = async (novosDados) => {
     try {
       const dadosArmazenados = await AsyncStorage.getItem('@usuarios');
       let listaDeUsuarios = dadosArmazenados ? JSON.parse(dadosArmazenados) : [];
-
-      // Verificação para garantir que o novo e-mail não está em uso por outra conta
-      const emailJaExiste = listaDeUsuarios.find(
-        u => u.email === novosDados.email && u.id !== novosDados.id
-      );
-
+      const emailJaExiste = listaDeUsuarios.find(u => u.email === novosDados.email && u.id !== novosDados.id);
       if (emailJaExiste) {
         return { success: false, message: 'Este e-mail já está em uso por outra conta.' };
       }
-
-      // Encontra o usuário pelo ID para garantir que estamos atualizando a pessoa certa
       const indiceDoUsuario = listaDeUsuarios.findIndex(u => u.id === novosDados.id);
-
       if (indiceDoUsuario !== -1) {
         listaDeUsuarios[indiceDoUsuario] = novosDados;
-        
         await AsyncStorage.setItem('@usuarios', JSON.stringify(listaDeUsuarios));
         await AsyncStorage.setItem('@usuarioLogado', JSON.stringify(novosDados));
-
         setUsuario(novosDados);
         return { success: true };
       }
-      
       return { success: false, message: 'Usuário não encontrado.' };
     } catch (e) {
       console.error("Erro ao atualizar usuário no contexto", e);
@@ -98,19 +86,51 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Função para fazer logout
+  const adicionarFavorito = async (item) => {
+    if (!usuario || !usuario.favoritos || usuario.favoritos.some(fav => fav.id === item.id)) {
+      return;
+    }
+    const novosFavoritos = [...usuario.favoritos, item];
+    const novosDados = { ...usuario, favoritos: novosFavoritos };
+    await atualizarUsuario(novosDados);
+  };
+
+  const removerFavorito = async (itemId) => {
+    if (!usuario || !usuario.favoritos) {
+      return;
+    }
+    const novosFavoritos = usuario.favoritos.filter(fav => fav.id !== itemId);
+    const novosDados = { ...usuario, favoritos: novosFavoritos };
+    await atualizarUsuario(novosDados);
+  };
+
+  const isFavorito = (itemId) => {
+    if (!usuario || !usuario.favoritos) {
+      return false;
+    }
+    return usuario.favoritos.some(fav => fav.id === itemId);
+  };
+
   const logout = async () => {
     setUsuario(null);
     await AsyncStorage.removeItem('@usuarioLogado');
   };
 
-  // O Provider que disponibiliza o estado e as funções para o resto do app
   return (
-    <AuthContext.Provider value={{ usuario, carregando, registrar, login, logout, atualizarUsuario }}>
+    <AuthContext.Provider value={{ 
+      usuario, 
+      carregando, 
+      registrar, 
+      login, 
+      logout, 
+      atualizarUsuario,
+      adicionarFavorito,
+      removerFavorito,
+      isFavorito
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook personalizado para facilitar o uso do contexto
 export const useAuth = () => useContext(AuthContext);
